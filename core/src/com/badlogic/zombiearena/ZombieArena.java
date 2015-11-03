@@ -21,6 +21,9 @@ import com.badlogic.gdx.utils.TimeUtils;
 
 public class ZombieArena implements ApplicationListener
 {
+	private static int screenX=1366;
+	private static int screenY=768;
+
 	private boolean facingRight, moveOK, slashing, shooting, stomping, firedRight, dodging;
 	
 	private Texture charSheet;
@@ -78,7 +81,8 @@ public class ZombieArena implements ApplicationListener
 		//CharSheet is a sprite sheet for the  character texture
 		//playPos is a rectangle for tracking the player's current location
 		charSheet = new Texture(Gdx.files.internal("smoke.png"));
-		playPos = new Rectangle((800 /2 - 64/2),20, 48, 64);
+//		playPos = new Rectangle((800 /2 - 64/2),20, 48, 64);
+		playPos = new Rectangle(screenX/2, 40, 55, 56);
 
 		//Setup walk animation
 		walk = new Sprite[6];
@@ -92,7 +96,7 @@ public class ZombieArena implements ApplicationListener
 
 		//Setup slash animations
 		slashSheet = new Texture(Gdx.files.internal("slash.png"));
-		slash = new Sprite(slashSheet, 0, 228, 132, (312-228));
+		slash = new Sprite(slashSheet, 0, 228, 132, (312-212));
 
 
 		//Initialize stomp animation
@@ -110,7 +114,7 @@ public class ZombieArena implements ApplicationListener
 
 		//Cam variables
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 800, 480);
+		camera.setToOrtho(false, screenX, screenY);
 
 	}
 
@@ -151,7 +155,7 @@ public class ZombieArena implements ApplicationListener
 	@Override
 	public void render ()
 	{
-		Gdx.gl.glClearColor(0, 0, 0.2f, 1);
+		Gdx.gl.glClearColor(0, 0, 0.25f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 
@@ -170,11 +174,11 @@ public class ZombieArena implements ApplicationListener
 		//Draw slash animation if slashing
 		if(slashing && facingRight)
 		{
-			batch.draw(slash, playPos.getX()+ 8, playPos.getY());
+			batch.draw(slash, playPos.getX()+ 8, playPos.getY() -16 );
 		}
 		else if(slashing)
 		{
-			batch.draw(slash, playPos.getX() - 88, playPos.getY());
+			batch.draw(slash, playPos.getX() - 96, playPos.getY() - 16);
 		}
 
 
@@ -314,8 +318,8 @@ public class ZombieArena implements ApplicationListener
 		}
 
 		if(arrowX < 1) shooting=false;
-		if(arrowX > 800 - 65) shooting=false;
-		if(arrowY > 479) shooting=false;
+		if(arrowX > screenX - 65) shooting=false;
+		if(arrowY > screenY) shooting=false;
 
 
 
@@ -349,7 +353,7 @@ public class ZombieArena implements ApplicationListener
 		}
 
 		if(playPos.getX() < 0) playPos.setX(0);
-		if(playPos.getX() > 800 - 64) playPos.setX(800 - 64);
+		if(playPos.getX() > screenX - 64) playPos.setX(screenX - 64);
 
 
 	}

@@ -24,7 +24,7 @@ public class ZombieArena implements ApplicationListener
 	private static int screenX=1366;
 	private static int screenY=768;
 
-	private boolean facingRight, moveOK, slashing, shooting, stomping, firedRight, dodging;
+	private boolean facingRight, moveOK, slashing, shooting, stomping, firedRight, dodging, halfSwing;
 
 	private Sprite standing;
 	private Sprite[] walk;
@@ -49,7 +49,7 @@ public class ZombieArena implements ApplicationListener
 
 	private OrthographicCamera camera;
 
-	private float lastUpdate, arrowUpdate, lastEnemy;
+	private float lastUpdate, arrowUpdate, lastEnemy, slashUpdate;
 
 	private int slashCounter;
 
@@ -57,6 +57,8 @@ public class ZombieArena implements ApplicationListener
 	public void create ()
 	{
 		slashCounter=0;
+
+		halfSwing=false;
 
 
 		//playerT is a sprite sheet for the  character texture
@@ -67,9 +69,10 @@ public class ZombieArena implements ApplicationListener
 		//AttackSheet is a sprite sheet for the "slash" animations
 		attackSheet = new Texture(Gdx.files.internal("vAttack.png"));
 		attackSprite = new Sprite[12];
-		for (int i=0; i<12; i++)
+
+		for (int i = 0; i < 12; i++)
 		{
-			attackSprite[i] = new Sprite(attackSheet, (0 + (i * 344)), (0 + (i * 210)), 344, 210);
+			attackSprite[i] = new Sprite(attackSheet, (0 + (i * 344)), 0, 344, 210);
 		}
 
 
@@ -129,6 +132,7 @@ public class ZombieArena implements ApplicationListener
 		lastUpdate = TimeUtils.nanoTime();
 		arrowUpdate = lastUpdate;
 		lastEnemy = lastUpdate;
+		slashUpdate = lastUpdate;
 
 
 		//Cam variables
@@ -154,6 +158,11 @@ public class ZombieArena implements ApplicationListener
 		{
 			walk[i].flip(true, false);
 		}
+
+		for(int i=0; i<12; i++)
+		{
+			attackSprite[i].flip(true, false);
+		}
 	}
 
 
@@ -172,17 +181,31 @@ public class ZombieArena implements ApplicationListener
 
 	public void slash()
 	{
-		if (TimeUtils.nanoTime() - lastUpdate > 90000000)
+		if (TimeUtils.nanoTime() - slashUpdate > 45000000)
 		{
-			lastUpdate = TimeUtils.nanoTime();
-			slashCounter++;
-			if(slashCounter == 12)
+			slashUpdate = TimeUtils.nanoTime();
+			playerChar.set(attackSprite[slashCounter]);
+
+
+			if(!halfSwing)
 			{
-				slashCounter = 0;
+				slashCounter++;
+			}
+			if (slashCounter == 12)
+			{
+				halfSwing = true;
+			}
+			if(halfSwing)
+			{
+				slashCounter--;
+			}
+			if(halfSwing && slashCounter < 0)
+			{
+				slashCounter =0;
+				halfSwing=false;
 				slashing = false;
 				moveOK = true;
 			}
-			playerChar.set(attackSprite[slashCounter]);
 		}
 	}
 
@@ -199,6 +222,10 @@ public class ZombieArena implements ApplicationListener
 
 		batch.setProjectionMatrix(camera.combined);
 
+		if(slashing)
+		{
+			slash();
+		}
 
 		batch.begin();
 
@@ -207,6 +234,7 @@ public class ZombieArena implements ApplicationListener
 
 
 		//Draw slash animation if slashing
+		/*
 		if(slashing && facingRight)
 		{
 			batch.draw(slash, playPos.getX()+ 8, playPos.getY() -16 );
@@ -215,6 +243,7 @@ public class ZombieArena implements ApplicationListener
 		{
 			batch.draw(slash, playPos.getX() - 96, playPos.getY() - 16);
 		}
+		*/
 
 
 
@@ -329,24 +358,21 @@ public class ZombieArena implements ApplicationListener
 			lastUpdate = TimeUtils.nanoTime();
 		}
 
-		if(slashing)
-		{
-			slash();
-		}
-
 
 		//End Slashing Animation after set time
+		/*
 		if(slashing && TimeUtils.nanoTime() - lastUpdate > 125000000)
 		{
-		//	moveOK = true;
-		//	slashing = false;
+			moveOK = true;
+			slashing = false;
 		}
+		*/
 
 
 		//End stomping animation
 		if(stomping && TimeUtils.nanoTime() - lastUpdate > 125000000)
 		{
-			moveOK=true;
+			moveOK = true;
 			stomping = false;
 		}
 

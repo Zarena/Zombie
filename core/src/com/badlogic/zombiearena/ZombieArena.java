@@ -25,14 +25,15 @@ public class ZombieArena implements ApplicationListener
 	private static int screenY=768;
 
 	private boolean facingRight, moveOK, slashing, shooting, stomping, firedRight, dodging;
-	
-	private Texture charSheet;
+
 	private Sprite standing;
 	private Sprite[] walk;
 	private int walkCounter;
 	private Sprite playerChar;
-	private Texture shadowT;
-	private Sprite shadow;
+	private Texture playerT;
+	private Sprite playerS;
+	private Texture attackSheet;
+	private Sprite[] attackSprite;
 
 	private Rectangle playPos;
 
@@ -50,12 +51,27 @@ public class ZombieArena implements ApplicationListener
 
 	private float lastUpdate, arrowUpdate, lastEnemy;
 
+	private int slashCounter;
+
 	@Override
 	public void create ()
 	{
+		slashCounter=0;
 
-		shadowT = new Texture(Gdx.files.internal("shadow.png"));
-		shadow = new Sprite(shadowT);
+
+		//playerT is a sprite sheet for the  character texture
+		playerT = new Texture(Gdx.files.internal("viking.png"));
+		playerS = new Sprite(playerT);
+
+
+		//AttackSheet is a sprite sheet for the "slash" animations
+		attackSheet = new Texture(Gdx.files.internal("vAttack.png"));
+		attackSprite = new Sprite[12];
+		for (int i=0; i<12; i++)
+		{
+			attackSprite[i] = new Sprite(attackSheet, (0 + (i * 344)), (0 + (i * 210)), 344, 210);
+		}
+
 
 		//Initialize arrow
 		arrowT = new Texture(Gdx.files.internal("arrow.png"));
@@ -63,6 +79,7 @@ public class ZombieArena implements ApplicationListener
 		arrowL.flip(true, false);
 		arrowR = new Sprite(arrowT);
 		arrow = new Sprite(arrowT);
+
 
 		//Booleans for tracking facing, whether or not movement is allowed, whether
 		//or not the player is currently attacking
@@ -78,21 +95,21 @@ public class ZombieArena implements ApplicationListener
 		//Sprite batch
 		batch = new SpriteBatch();
 
-		//CharSheet is a sprite sheet for the  character texture
+
 		//playPos is a rectangle for tracking the player's current location
-		charSheet = new Texture(Gdx.files.internal("smoke.png"));
-//		playPos = new Rectangle((800 /2 - 64/2),20, 48, 64);
-		playPos = new Rectangle(screenX/2, 40, 55, 56);
+		//playPos = new Rectangle((800 /2 - 64/2),20, 48, 64);
+		playPos = new Rectangle((screenX/2 - 220/2), 40, 55, 56);
+
 
 		//Setup walk animation
-		walk = new Sprite[6];
-		walk[0] = new Sprite(charSheet, 8,432, 40, 56);
-		walk[1] = new Sprite(charSheet, 64, 432, 40, 56);
-		walk[2] = new Sprite(charSheet, 128, 432, 48, 56);
-		walk[3] = new Sprite(charSheet, 200, 432, 48, 56);
-		walk[4] = new Sprite(charSheet, 264, 440, 48, 56);
-		walk[5] = new Sprite(charSheet, 328, 440, 48, 56);
+		//220 x 222
+		walk = new Sprite[9];
+		for(int i=0; i<9; i++)
+		{
+			walk[i] = new Sprite(playerT, (440 + (i*220)), 0, 220, 222);
+		}
 		walkCounter = 0;
+
 
 		//Setup slash animations
 		slashSheet = new Texture(Gdx.files.internal("slash.png"));
@@ -104,18 +121,19 @@ public class ZombieArena implements ApplicationListener
 
 
 		//Setup basic character (standing)
-		playerChar = new Sprite(charSheet, 0 , 0, 48, 64);
-		standing = new Sprite(charSheet, 0 , 0, 48, 64);
+		playerChar = new Sprite(playerT, 0 , 0, 280, 222);
+		standing = new Sprite(playerT, 0 , 0, 280, 222);
+
 
 		//Tracking animation times and enemy spawn times
 		lastUpdate = TimeUtils.nanoTime();
 		arrowUpdate = lastUpdate;
 		lastEnemy = lastUpdate;
 
+
 		//Cam variables
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, screenX, screenY);
-
 	}
 
 
@@ -132,22 +150,39 @@ public class ZombieArena implements ApplicationListener
 			arrow.flip(true, false);
 		}
 
-		for(int i=0; i<6; i++)
+		for(int i=0; i<9; i++)
 		{
 			walk[i].flip(true, false);
 		}
 	}
 
+
 	//Method used to update walk animation
 	public void step()
 	{
-		if (TimeUtils.nanoTime() - lastUpdate > 125000000)
+		if (TimeUtils.nanoTime() - lastUpdate > 90000000)
 		{
 			lastUpdate = TimeUtils.nanoTime();
 			walkCounter++;
-			if (walkCounter == 6)
+			if (walkCounter == 9)
 				walkCounter = 0;
 			playerChar.set(walk[walkCounter]);
+		}
+	}
+
+	public void slash()
+	{
+		if (TimeUtils.nanoTime() - lastUpdate > 90000000)
+		{
+			lastUpdate = TimeUtils.nanoTime();
+			slashCounter++;
+			if(slashCounter == 12)
+			{
+				slashCounter = 0;
+				slashing = false;
+				moveOK = true;
+			}
+			playerChar.set(attackSprite[slashCounter]);
 		}
 	}
 
@@ -224,7 +259,7 @@ public class ZombieArena implements ApplicationListener
 			dodging = true;
 			moveOK=false;
 			lastUpdate = TimeUtils.nanoTime();
-			playerChar.set(shadow);
+			playerChar.set(playerS);
 		}
 
 		if(dodging)
@@ -265,6 +300,7 @@ public class ZombieArena implements ApplicationListener
 		//Code for slashing to the right
 		if(Gdx.input.isKeyPressed(Keys.RIGHT) && moveOK)
 		{
+
 			if(!facingRight)
 			{
 				flip();
@@ -281,6 +317,7 @@ public class ZombieArena implements ApplicationListener
 		//code for slashing to the left
 		if(Gdx.input.isKeyPressed(Keys.LEFT) && moveOK)
 		{
+
 			if(facingRight)
 			{
 				flip();
@@ -292,14 +329,17 @@ public class ZombieArena implements ApplicationListener
 			lastUpdate = TimeUtils.nanoTime();
 		}
 
-
+		if(slashing)
+		{
+			slash();
+		}
 
 
 		//End Slashing Animation after set time
 		if(slashing && TimeUtils.nanoTime() - lastUpdate > 125000000)
 		{
-			moveOK = true;
-			slashing = false;
+		//	moveOK = true;
+		//	slashing = false;
 		}
 
 
@@ -328,7 +368,7 @@ public class ZombieArena implements ApplicationListener
 		{
 			step();
 
-			playPos.setX(playPos.getX() - 200 * Gdx.graphics.getDeltaTime());
+			playPos.setX(playPos.getX() - 275 * Gdx.graphics.getDeltaTime());
 
 			if(facingRight)
 			{
@@ -339,7 +379,7 @@ public class ZombieArena implements ApplicationListener
 		else if(Gdx.input.isKeyPressed(Keys.D) && moveOK)
 		{
 			step();
-			playPos.setX(playPos.getX() + 200 * Gdx.graphics.getDeltaTime());
+			playPos.setX(playPos.getX() + 275 * Gdx.graphics.getDeltaTime());
 
 			if(!facingRight)
 			{
@@ -353,7 +393,7 @@ public class ZombieArena implements ApplicationListener
 		}
 
 		if(playPos.getX() < 0) playPos.setX(0);
-		if(playPos.getX() > screenX - 64) playPos.setX(screenX - 64);
+		if(playPos.getX() > screenX - 220) playPos.setX(screenX - 220);
 
 
 	}

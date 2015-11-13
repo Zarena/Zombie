@@ -391,7 +391,7 @@ public class ZombieArena implements ApplicationListener
 
 
 		// - UP
-		if(Gdx.input.isKeyPressed(Keys.UP) && moveOK && !flyinga)
+		if(Gdx.input.isKeyPressed(Keys.UP) && moveOK && !flying)
 		{
 			firedRight = facingRight;
 			if(firedRight)

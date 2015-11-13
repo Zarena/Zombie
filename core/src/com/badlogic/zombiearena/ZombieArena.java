@@ -21,34 +21,45 @@ import com.badlogic.gdx.utils.TimeUtils;
 
 public class ZombieArena implements ApplicationListener
 {
+	//Game Window Variables
 	private static int screenX=1366;
 	private static int screenY=768;
+	private Texture background;
 
-	private boolean facingRight, moveOK, firedRight, dodging, halfSwing;
+	
+	//Avatar variables
+	private Rectangle playPos;
+	private boolean facingRight, moveOK;
 
+	private Texture avatarTexture;
 	private Sprite standing;
+	private Sprite avatar;
+
+	private Texture dodgeTexture;
+	private Sprite dodgeSprite;
+
+	
+	//Walk variables
 	private Sprite[] walk;
 	private int walkCounter;
-	private Sprite playerChar;
-	private Texture playerT;
-	private Sprite playerS;
+
+	
+	//"Slash" Variables
 	private Texture attackSheet;
 	private Sprite[] attackSprite;
+
+
+	//Slam Variables
 	private Texture vSlamTexture;
 	private Sprite[] vSlamSprite;
 
-	private Rectangle playPos;
 
-
-	private Texture hammerT;
-	private Sprite hammer, hammerL, hammerR;
-	float hammerX, hammerY;
-
+	//Utilities
 	private SpriteBatch batch;
-
 	private OrthographicCamera camera;
+	private float lastUpdate, lastEnemy;
+	private boolean firedRight, dodging, halfSwing;
 
-	private float lastUpdate, hammerUpdate, lastEnemy;
 
 	//Throw Trackers
 	private Texture throwStrip;
@@ -56,6 +67,9 @@ public class ZombieArena implements ApplicationListener
 	private int throwCounter;
 	private float throwUpdate;
 	private boolean throwing, flying;
+	private Texture hammerT;
+	private Sprite hammer, hammerL, hammerR;
+	float hammerX, hammerY;
 	
 	
 	//"Slash" Trackers
@@ -73,6 +87,8 @@ public class ZombieArena implements ApplicationListener
 	@Override
 	public void create ()
 	{
+		background = new Texture(Gdx.files.internal("bg1.png"));
+
 		//Initialize Throw Trackers
 		throwCounter = 0;
 		throwUpdate =TimeUtils.nanoTime();
@@ -82,7 +98,7 @@ public class ZombieArena implements ApplicationListener
 		throwSprite = new Sprite[18];
 		for(int i=0; i<18; i++)
 		{
-			throwSprite[i] = new Sprite(throwStrip, (0 + (i * 356)), 0, 356, 256);
+			throwSprite[i] = new Sprite(throwStrip, (i * 356), 0, 356, 256);
 		}
 
 
@@ -104,13 +120,14 @@ public class ZombieArena implements ApplicationListener
 		vSlamSprite = new Sprite[9];
 		for (int i=0; i<9; i++)
 		{
-			vSlamSprite[i] = new Sprite(vSlamTexture, 0 + (i * 286 ),0,286,254);
+			vSlamSprite[i] = new Sprite(vSlamTexture, (i * 286 ),0,286,254);
 		}
 
 
-		//playerT is a sprite sheet for the  character texture
-		playerT = new Texture(Gdx.files.internal("viking.png"));
-		playerS = new Sprite(playerT);
+		//avatarTexture is a sprite sheet for the  character texture
+		avatarTexture = new Texture(Gdx.files.internal("viking.png"));
+		dodgeTexture = new Texture(Gdx.files.internal("dodge.png"));
+		dodgeSprite = new Sprite(dodgeTexture);
 
 
 		//AttackSheet is a sprite sheet for the "slash" animations
@@ -119,7 +136,7 @@ public class ZombieArena implements ApplicationListener
 
 		for (int i = 0; i < 12; i++)
 		{
-			attackSprite[i] = new Sprite(attackSheet, (0 + (i * 344)), 0, 344, 210);
+			attackSprite[i] = new Sprite(attackSheet, (i * 344), 0, 344, 210);
 		}
 
 
@@ -132,7 +149,7 @@ public class ZombieArena implements ApplicationListener
 
 
 		//Booleans for tracking facing, whether or not movement is allowed, whether
-		//or not the player is currently attacking
+		//or not the player is currently attacking, etc.
 		facingRight = true;
 		moveOK = true;
 		slashing = false;
@@ -155,21 +172,18 @@ public class ZombieArena implements ApplicationListener
 		walk = new Sprite[9];
 		for(int i=0; i<9; i++)
 		{
-			walk[i] = new Sprite(playerT, (440 + (i*220)), 0, 220, 222);
+			walk[i] = new Sprite(avatarTexture, (440 + (i*220)), 0, 220, 222);
 		}
 		walkCounter = 0;
 
 
 
-
 		//Setup basic character (standing)
-		playerChar = new Sprite(playerT, 0 , 0, 280, 222);
-		standing = new Sprite(playerT, 0 , 0, 280, 222);
-
+		standing = new Sprite(avatarTexture, 0 , 0, 280, 222);
+		avatar = new Sprite(standing);
 
 		//Tracking animation times and enemy spawn times
 		lastUpdate = TimeUtils.nanoTime();
-		hammerUpdate = lastUpdate;
 		lastEnemy = lastUpdate;
 		slashUpdate = lastUpdate;
 
@@ -184,8 +198,9 @@ public class ZombieArena implements ApplicationListener
 	//Method for flipping sprites/textures
 	public void flip()
 	{
-		playerChar.flip(true, false);
+		avatar.flip(true, false);
 		standing.flip(true, false);
+		dodgeSprite.flip(true, false);
 
 
 		if(!flying)
@@ -224,7 +239,7 @@ public class ZombieArena implements ApplicationListener
 			walkCounter++;
 			if (walkCounter == 9)
 				walkCounter = 0;
-			playerChar.set(walk[walkCounter]);
+			avatar.set(walk[walkCounter]);
 		}
 	}
 
@@ -232,11 +247,14 @@ public class ZombieArena implements ApplicationListener
 	//Throw is a reserved word.
 	public void toss()
 	{
-		if (TimeUtils.nanoTime() - throwUpdate > 45000000)
+		if (TimeUtils.nanoTime() - throwUpdate > 22500000)
 		{
 			throwUpdate = TimeUtils.nanoTime();
-			playerChar.set(throwSprite[throwCounter]);
+			avatar.set(throwSprite[throwCounter]);
 			throwCounter++;
+
+			if(throwCounter==9)
+				flying = true;
 
 			if(throwCounter == 18)
 			{
@@ -253,7 +271,7 @@ public class ZombieArena implements ApplicationListener
 		if (TimeUtils.nanoTime() - slamUpdate > 45000000)
 		{
 			slamUpdate = TimeUtils.nanoTime();
-			playerChar.set(vSlamSprite[slamCounter]);
+			avatar.set(vSlamSprite[slamCounter]);
 			slamCounter++;
 
 			if(slamCounter == 9)
@@ -271,7 +289,7 @@ public class ZombieArena implements ApplicationListener
 		if (TimeUtils.nanoTime() - slashUpdate > 45000000)
 		{
 			slashUpdate = TimeUtils.nanoTime();
-			playerChar.set(attackSprite[slashCounter]);
+			avatar.set(attackSprite[slashCounter]);
 
 
 			if(!halfSwing)
@@ -326,36 +344,24 @@ public class ZombieArena implements ApplicationListener
 
 		batch.begin();
 
+		batch.draw(background, 0, 0);
+
 		//Draw player sprite
-		batch.draw(playerChar, playPos.getX(), playPos.getY());
-
-
-		//Draw slash animation if slashing
-		/*
-		if(slashing && facingRight)
-		{
-			batch.draw(slash, playPos.getX()+ 8, playPos.getY() -16 );
-		}
-		else if(slashing)
-		{
-			batch.draw(slash, playPos.getX() - 96, playPos.getY() - 16);
-		}
-		*/
-
+		batch.draw(avatar, playPos.getX(), playPos.getY());
 
 
 		//Draw and update hammer if hammer was fired
 		if(flying && firedRight)
 		{
 			batch.draw(hammer, hammerX, hammerY);
-			hammerX += 400 * Gdx.graphics.getDeltaTime();
-			hammerY += 400 * Gdx.graphics.getDeltaTime();
+			hammerX += 600 * Gdx.graphics.getDeltaTime();
+			hammerY += 600 * Gdx.graphics.getDeltaTime();
 		}
 		else if(flying)
 		{
 			batch.draw(hammer, hammerX, hammerY);
-			hammerX -= 400 * Gdx.graphics.getDeltaTime();
-			hammerY += 400 * Gdx.graphics.getDeltaTime();
+			hammerX -= 600 * Gdx.graphics.getDeltaTime();
+			hammerY += 600 * Gdx.graphics.getDeltaTime();
 		}
 
 		batch.end();
@@ -363,7 +369,7 @@ public class ZombieArena implements ApplicationListener
 
 		if(dodging && TimeUtils.nanoTime() - lastUpdate > 500000000)
 		{
-			playerChar.set(standing);
+			avatar.set(standing);
 			moveOK=true;
 			dodging=false;
 		}
@@ -372,9 +378,9 @@ public class ZombieArena implements ApplicationListener
 		if(dodging)
 		{
 			if(facingRight)
-				playPos.setX(playPos.getX() + 400 * Gdx.graphics.getDeltaTime());
+				playPos.setX(playPos.getX() + 800 * Gdx.graphics.getDeltaTime());
 			else
-				playPos.setX(playPos.getX() - 400 * Gdx.graphics.getDeltaTime());
+				playPos.setX(playPos.getX() - 800 * Gdx.graphics.getDeltaTime());
 		}
 
 		///////////////////////// INPUT ////////////////////////////
@@ -384,7 +390,7 @@ public class ZombieArena implements ApplicationListener
 			dodging = true;
 			moveOK=false;
 			lastUpdate = TimeUtils.nanoTime();
-			playerChar.set(playerS);
+			avatar.set(dodgeSprite);
 		}
 
 
@@ -399,12 +405,10 @@ public class ZombieArena implements ApplicationListener
 			else
 				hammer.set(hammerL);
 
-			flying=true;
 			throwing=true;
 			moveOK=false;
 			hammerX = playPos.getX();
 			hammerY = playPos.getY();
-			hammerUpdate = TimeUtils.nanoTime();
 		}
 
 
@@ -467,7 +471,7 @@ public class ZombieArena implements ApplicationListener
 		}
 */
 
-		if(hammerX < 1) flying=false;
+		if(hammerX < 1 - 156) flying=false;
 		if(hammerX > screenX) flying=false;
 		if(hammerY > screenY) flying=false;
 
@@ -499,7 +503,7 @@ public class ZombieArena implements ApplicationListener
 		}
 		else if(moveOK)
 		{
-			playerChar.set(standing);
+			avatar.set(standing);
 		}
 
 		if(playPos.getX() < 0) playPos.setX(0);

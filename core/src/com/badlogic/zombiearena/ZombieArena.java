@@ -24,7 +24,7 @@ public class ZombieArena implements ApplicationListener
 	private static int screenX=1366;
 	private static int screenY=768;
 
-	private boolean facingRight, moveOK, slashing, shooting, stomping, firedRight, dodging, halfSwing;
+	private boolean facingRight, moveOK, firedRight, dodging, halfSwing;
 
 	private Sprite standing;
 	private Sprite[] walk;
@@ -34,31 +34,78 @@ public class ZombieArena implements ApplicationListener
 	private Sprite playerS;
 	private Texture attackSheet;
 	private Sprite[] attackSprite;
+	private Texture vSlamTexture;
+	private Sprite[] vSlamSprite;
 
 	private Rectangle playPos;
 
-	private Texture slashSheet;
-	private Sprite slash;
-	private Sprite stomp;
 
-	private Texture arrowT;
-	private Sprite arrow, arrowL, arrowR;
-	float arrowX, arrowY;
+	private Texture hammerT;
+	private Sprite hammer, hammerL, hammerR;
+	float hammerX, hammerY;
 
 	private SpriteBatch batch;
 
 	private OrthographicCamera camera;
 
-	private float lastUpdate, arrowUpdate, lastEnemy, slashUpdate;
+	private float lastUpdate, hammerUpdate, lastEnemy;
 
+	//Throw Trackers
+	private Texture throwStrip;
+	private Sprite[] throwSprite;
+	private int throwCounter;
+	private float throwUpdate;
+	private boolean throwing, flying;
+	
+	
+	//"Slash" Trackers
 	private int slashCounter;
+	private float slashUpdate;
+	private boolean slashing;
+
+
+	//Slam Trackers
+	private int slamCounter;
+	private float slamUpdate;
+	private boolean slamming;
+
 
 	@Override
 	public void create ()
 	{
-		slashCounter=0;
+		//Initialize Throw Trackers
+		throwCounter = 0;
+		throwUpdate =TimeUtils.nanoTime();
+		throwing = false;
+		flying = false;
+		throwStrip = new Texture(Gdx.files.internal("vThrow.png"));
+		throwSprite = new Sprite[18];
+		for(int i=0; i<18; i++)
+		{
+			throwSprite[i] = new Sprite(throwStrip, (0 + (i * 356)), 0, 356, 256);
+		}
 
+
+		//Initialize Slam Trackers
+		slamCounter = 0;
+		slamUpdate = TimeUtils.nanoTime();
+		slamming = false;
+
+
+		//Initialize "Slash" Trackers
+		slashCounter=0;
 		halfSwing=false;
+		slashing = false;
+		slashUpdate = slamUpdate;
+
+
+		//Initialize viking slam animation
+		vSlamTexture = new Texture(Gdx.files.internal("vSlam.png"));
+		vSlamSprite = new Sprite[9];
+		for (int i=0; i<9; i++)
+		{
+			vSlamSprite[i] = new Sprite(vSlamTexture, 0 + (i * 286 ),0,286,254);
+		}
 
 
 		//playerT is a sprite sheet for the  character texture
@@ -76,12 +123,12 @@ public class ZombieArena implements ApplicationListener
 		}
 
 
-		//Initialize arrow
-		arrowT = new Texture(Gdx.files.internal("arrow.png"));
-		arrowL = new Sprite(arrowT);
-		arrowL.flip(true, false);
-		arrowR = new Sprite(arrowT);
-		arrow = new Sprite(arrowT);
+		//Initialize hammer
+		hammerT = new Texture(Gdx.files.internal("hammer.png"));
+		hammerL = new Sprite(hammerT);
+		hammerL.flip(true, false);
+		hammerR = new Sprite(hammerT);
+		hammer = new Sprite(hammerT);
 
 
 		//Booleans for tracking facing, whether or not movement is allowed, whether
@@ -89,8 +136,7 @@ public class ZombieArena implements ApplicationListener
 		facingRight = true;
 		moveOK = true;
 		slashing = false;
-		shooting = false;
-		stomping = false;
+		throwing = false;
 		firedRight = true;
 		dodging = false;
 
@@ -114,13 +160,6 @@ public class ZombieArena implements ApplicationListener
 		walkCounter = 0;
 
 
-		//Setup slash animations
-		slashSheet = new Texture(Gdx.files.internal("slash.png"));
-		slash = new Sprite(slashSheet, 0, 228, 132, (312-212));
-
-
-		//Initialize stomp animation
-		stomp = new Sprite(slashSheet, 36, 588, (156-36), (684-588));
 
 
 		//Setup basic character (standing)
@@ -130,7 +169,7 @@ public class ZombieArena implements ApplicationListener
 
 		//Tracking animation times and enemy spawn times
 		lastUpdate = TimeUtils.nanoTime();
-		arrowUpdate = lastUpdate;
+		hammerUpdate = lastUpdate;
 		lastEnemy = lastUpdate;
 		slashUpdate = lastUpdate;
 
@@ -141,17 +180,17 @@ public class ZombieArena implements ApplicationListener
 	}
 
 
+
 	//Method for flipping sprites/textures
 	public void flip()
 	{
 		playerChar.flip(true, false);
 		standing.flip(true, false);
-		slash.flip(true, false);
-		stomp.flip(true, false);
 
-		if(!shooting)
+
+		if(!flying)
 		{
-			arrow.flip(true, false);
+			hammer.flip(true, false);
 		}
 
 		for(int i=0; i<9; i++)
@@ -162,6 +201,16 @@ public class ZombieArena implements ApplicationListener
 		for(int i=0; i<12; i++)
 		{
 			attackSprite[i].flip(true, false);
+		}
+
+		for(int i=0; i<9; i++)
+		{
+			vSlamSprite[i].flip(true, false);
+		}
+
+		for(int i=0; i<18; i++)
+		{
+			throwSprite[i].flip(true, false);
 		}
 	}
 
@@ -178,6 +227,44 @@ public class ZombieArena implements ApplicationListener
 			playerChar.set(walk[walkCounter]);
 		}
 	}
+
+
+	//Throw is a reserved word.
+	public void toss()
+	{
+		if (TimeUtils.nanoTime() - throwUpdate > 45000000)
+		{
+			throwUpdate = TimeUtils.nanoTime();
+			playerChar.set(throwSprite[throwCounter]);
+			throwCounter++;
+
+			if(throwCounter == 18)
+			{
+				throwCounter = 0;
+				throwing = false;
+				moveOK = true;
+			}
+		}
+	}
+
+
+	public void slam()
+	{
+		if (TimeUtils.nanoTime() - slamUpdate > 45000000)
+		{
+			slamUpdate = TimeUtils.nanoTime();
+			playerChar.set(vSlamSprite[slamCounter]);
+			slamCounter++;
+
+			if(slamCounter == 9)
+			{
+				slamCounter = 0;
+				slamming = false;
+				moveOK = true;
+			}
+		}
+	}
+
 
 	public void slash()
 	{
@@ -222,9 +309,19 @@ public class ZombieArena implements ApplicationListener
 
 		batch.setProjectionMatrix(camera.combined);
 
+		if(throwing)
+		{
+			toss();
+		}
+
 		if(slashing)
 		{
 			slash();
+		}
+
+		if(slamming)
+		{
+			slam();
 		}
 
 		batch.begin();
@@ -247,29 +344,18 @@ public class ZombieArena implements ApplicationListener
 
 
 
-		//Draw and update arrow if arrow was fired
-		if(shooting && firedRight)
+		//Draw and update hammer if hammer was fired
+		if(flying && firedRight)
 		{
-			batch.draw(arrow, arrowX, arrowY);
-			arrowX += 400 * Gdx.graphics.getDeltaTime();
-			arrowY += 400 * Gdx.graphics.getDeltaTime();
+			batch.draw(hammer, hammerX, hammerY);
+			hammerX += 400 * Gdx.graphics.getDeltaTime();
+			hammerY += 400 * Gdx.graphics.getDeltaTime();
 		}
-		else if(shooting)
+		else if(flying)
 		{
-			batch.draw(arrow, arrowX, arrowY);
-			arrowX -= 400 * Gdx.graphics.getDeltaTime();
-			arrowY += 400 * Gdx.graphics.getDeltaTime();
-		}
-
-
-		//Draw stomp animation if stomping
-		if(stomping && facingRight)
-		{
-			batch.draw(stomp, playPos.getX()+35, playPos.getY()-20, 50, 50);
-		}
-		else if (stomping)
-		{
-			batch.draw(stomp, playPos.getX() - 35, playPos.getY()-20, 50, 50);
+			batch.draw(hammer, hammerX, hammerY);
+			hammerX -= 400 * Gdx.graphics.getDeltaTime();
+			hammerY += 400 * Gdx.graphics.getDeltaTime();
 		}
 
 		batch.end();
@@ -283,14 +369,6 @@ public class ZombieArena implements ApplicationListener
 		}
 
 
-		if(Gdx.input.isKeyPressed(Keys.SPACE) && moveOK && !dodging)
-		{
-			dodging = true;
-			moveOK=false;
-			lastUpdate = TimeUtils.nanoTime();
-			playerChar.set(playerS);
-		}
-
 		if(dodging)
 		{
 			if(facingRight)
@@ -299,29 +377,42 @@ public class ZombieArena implements ApplicationListener
 				playPos.setX(playPos.getX() - 400 * Gdx.graphics.getDeltaTime());
 		}
 
-
-		//If up is pressed, code for firing bow
-		if(Gdx.input.isKeyPressed(Keys.UP) && moveOK && !shooting)
+		///////////////////////// INPUT ////////////////////////////
+		// - SPACE
+		if(Gdx.input.isKeyPressed(Keys.SPACE) && moveOK && !dodging)
 		{
-			firedRight = facingRight;
-			if(firedRight)
-				arrow.set(arrowR);
-			else
-				arrow.set(arrowL);
-
-			shooting=true;
+			dodging = true;
 			moveOK=false;
-			arrowX = playPos.getX();
-			arrowY = playPos.getY();
-			arrowUpdate = TimeUtils.nanoTime();
+			lastUpdate = TimeUtils.nanoTime();
+			playerChar.set(playerS);
 		}
 
 
-		//Code for stomp attack if down is pressed
+
+
+		// - UP
+		if(Gdx.input.isKeyPressed(Keys.UP) && moveOK && !flyinga)
+		{
+			firedRight = facingRight;
+			if(firedRight)
+				hammer.set(hammerR);
+			else
+				hammer.set(hammerL);
+
+			flying=true;
+			throwing=true;
+			moveOK=false;
+			hammerX = playPos.getX();
+			hammerY = playPos.getY();
+			hammerUpdate = TimeUtils.nanoTime();
+		}
+
+
+		// - DOWN
 		if(Gdx.input.isKeyPressed(Keys.DOWN) && moveOK)
 		{
-			moveOK=false;
-			stomping=true;
+			slamming = true;
+			moveOK = false;
 			lastUpdate = TimeUtils.nanoTime();
 		}
 
@@ -369,23 +460,16 @@ public class ZombieArena implements ApplicationListener
 		*/
 
 
-		//End stomping animation
-		if(stomping && TimeUtils.nanoTime() - lastUpdate > 125000000)
-		{
-			moveOK = true;
-			stomping = false;
-		}
-
-
-		//End shooting/arrow animation and allow movement after arrow has been fired
-		if(!slashing && !stomping && !dodging && TimeUtils.nanoTime() - arrowUpdate > 100000000)
+		//End throwing/hammer animation and allow movement after hammer has been fired
+/*		if(!slashing && !slamming && !dodging && TimeUtils.nanoTime() - hammerUpdate > 100000000)
 		{
 				moveOK = true;
 		}
+*/
 
-		if(arrowX < 1) shooting=false;
-		if(arrowX > screenX - 65) shooting=false;
-		if(arrowY > screenY) shooting=false;
+		if(hammerX < 1) flying=false;
+		if(hammerX > screenX) flying=false;
+		if(hammerY > screenY) flying=false;
 
 
 

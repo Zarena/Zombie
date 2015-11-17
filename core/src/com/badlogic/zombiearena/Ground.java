@@ -11,3 +11,4 @@ public class Ground extends Enemy
     }
 
 }
+//THIS IS BS CODE ITS NOTE EVEN CODE. . .  ist just a comment . . . fix it!

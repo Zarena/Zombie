@@ -18,9 +18,31 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+
 
 public class ZombieArena implements ApplicationListener
 {
+	BitmapFont font;
+
+	//Pause Variables
+	private enum State
+	{
+		PAUSE, RESUME;
+	}
+	private State state;
+
+
+	//Enemies
+	private Array<Enemy> enemies;
+	private float lastEnemy;
+	// 1000000000 Nanoseconds = 1 second
+	// 1,000,000,000
+
+
+
 	//Game Window Variables
 	private static int screenX=1366;
 	private static int screenY=768;
@@ -55,9 +77,9 @@ public class ZombieArena implements ApplicationListener
 
 
 	//Utilities
-	private SpriteBatch batch;
+	public SpriteBatch batch;
 	private OrthographicCamera camera;
-	private float lastUpdate, lastEnemy;
+	private float lastUpdate;
 	private boolean firedRight, dodging, halfSwing;
 
 
@@ -88,6 +110,14 @@ public class ZombieArena implements ApplicationListener
 	public void create ()
 	{
 		background = new Texture(Gdx.files.internal("bg1.png"));
+
+		//Pause State
+		state = State.RESUME;
+
+
+		//Enemies
+		enemies = new Array<Enemy>();
+
 
 		//Initialize Throw Trackers
 		throwCounter = 0;
@@ -318,143 +348,149 @@ public class ZombieArena implements ApplicationListener
 	@Override
 	public void render ()
 	{
-		Gdx.gl.glClearColor(0, 0, 0.35f, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-
-		camera.update();
-
-
-		batch.setProjectionMatrix(camera.combined);
-
-		if(throwing)
+		switch (state)
 		{
-			toss();
-		}
-
-		if(slashing)
-		{
-			slash();
-		}
-
-		if(slamming)
-		{
-			slam();
-		}
-
-		batch.begin();
-
-		batch.draw(background, 0, 0);
-
-		//Draw player sprite
-		batch.draw(avatar, playPos.getX(), playPos.getY());
+			case PAUSE:
+				if (Gdx.input.isKeyJustPressed(Keys.P))
+					state = State.RESUME;
+				break;
+			case RESUME:
 
 
-		//Draw and update hammer if hammer was fired
-		if(flying && firedRight)
-		{
-			batch.draw(hammer, hammerX, hammerY);
-			hammerX += 600 * Gdx.graphics.getDeltaTime();
-			hammerY += 600 * Gdx.graphics.getDeltaTime();
-		}
-		else if(flying)
-		{
-			batch.draw(hammer, hammerX, hammerY);
-			hammerX -= 600 * Gdx.graphics.getDeltaTime();
-			hammerY += 600 * Gdx.graphics.getDeltaTime();
-		}
-
-		batch.end();
+				Gdx.gl.glClearColor(0, 0, 0.35f, 1);
+				Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 
-		if(dodging && TimeUtils.nanoTime() - lastUpdate > 500000000)
-		{
-			avatar.set(standing);
-			moveOK=true;
-			dodging=false;
-		}
+				camera.update();
 
 
-		if(dodging)
-		{
-			if(facingRight)
-				playPos.setX(playPos.getX() + 800 * Gdx.graphics.getDeltaTime());
-			else
-				playPos.setX(playPos.getX() - 800 * Gdx.graphics.getDeltaTime());
-		}
+				batch.setProjectionMatrix(camera.combined);
 
-		///////////////////////// INPUT ////////////////////////////
-		// - SPACE
-		if(Gdx.input.isKeyPressed(Keys.SPACE) && moveOK && !dodging)
-		{
-			dodging = true;
-			moveOK=false;
-			lastUpdate = TimeUtils.nanoTime();
-			avatar.set(dodgeSprite);
-		}
+				if (throwing)
+				{
+					toss();
+				}
 
+				if (slashing)
+				{
+					slash();
+				}
 
+				if (slamming)
+				{
+					slam();
+				}
 
+				batch.begin();
 
-		// - UP
-		if(Gdx.input.isKeyPressed(Keys.UP) && moveOK && !flying)
-		{
-			firedRight = facingRight;
-			if(firedRight)
-				hammer.set(hammerR);
-			else
-				hammer.set(hammerL);
+				batch.draw(background, 0, 0);
 
-			throwing=true;
-			moveOK=false;
-			hammerX = playPos.getX();
-			hammerY = playPos.getY();
-		}
+				//Draw player sprite
+				batch.draw(avatar, playPos.getX(), playPos.getY());
 
 
-		// - DOWN
-		if(Gdx.input.isKeyPressed(Keys.DOWN) && moveOK)
-		{
-			slamming = true;
-			moveOK = false;
-			lastUpdate = TimeUtils.nanoTime();
-		}
+				//Draw and update hammer if hammer was fired
+				if (flying && firedRight)
+				{
+					batch.draw(hammer, hammerX, hammerY);
+					hammerX += 600 * Gdx.graphics.getDeltaTime();
+					hammerY += 600 * Gdx.graphics.getDeltaTime();
+				} else if (flying)
+				{
+					batch.draw(hammer, hammerX, hammerY);
+					hammerX -= 600 * Gdx.graphics.getDeltaTime();
+					hammerY += 600 * Gdx.graphics.getDeltaTime();
+				}
+
+				batch.end();
 
 
-		//Code for slashing to the right
-		if(Gdx.input.isKeyPressed(Keys.RIGHT) && moveOK)
-		{
-
-			if(!facingRight)
-			{
-				flip();
-				facingRight = true;
-			}
-
-			slashing = true;
-			moveOK = false;
-			lastUpdate = TimeUtils.nanoTime();
-		}
+				if (dodging && TimeUtils.nanoTime() - lastUpdate > 500000000)
+				{
+					avatar.set(standing);
+					moveOK = true;
+					dodging = false;
+				}
 
 
+				if (dodging)
+				{
+					if (facingRight)
+						playPos.setX(playPos.getX() + 800 * Gdx.graphics.getDeltaTime());
+					else
+						playPos.setX(playPos.getX() - 800 * Gdx.graphics.getDeltaTime());
+				}
 
-		//code for slashing to the left
-		if(Gdx.input.isKeyPressed(Keys.LEFT) && moveOK)
-		{
-
-			if(facingRight)
-			{
-				flip();
-				facingRight = false;
-			}
-
-			slashing = true;
-			moveOK = false;
-			lastUpdate = TimeUtils.nanoTime();
-		}
+				///////////////////////// INPUT ////////////////////////////
+				// - SPACE
+				if (Gdx.input.isKeyJustPressed(Keys.SPACE) && moveOK && !dodging)
+				{
+					dodging = true;
+					moveOK = false;
+					lastUpdate = TimeUtils.nanoTime();
+					avatar.set(dodgeSprite);
+				}
 
 
-		//End Slashing Animation after set time
+				// - UP
+				if (Gdx.input.isKeyJustPressed(Keys.UP) && moveOK && !flying)
+				{
+					firedRight = facingRight;
+					if (firedRight)
+						hammer.set(hammerR);
+					else
+						hammer.set(hammerL);
+
+					throwing = true;
+					moveOK = false;
+					hammerX = playPos.getX();
+					hammerY = playPos.getY();
+				}
+
+
+				// - DOWN
+				if (Gdx.input.isKeyJustPressed(Keys.DOWN) && moveOK)
+				{
+					slamming = true;
+					moveOK = false;
+					lastUpdate = TimeUtils.nanoTime();
+				}
+
+
+				//Code for slashing to the right
+				if (Gdx.input.isKeyJustPressed(Keys.RIGHT) && moveOK)
+				{
+
+					if (!facingRight)
+					{
+						flip();
+						facingRight = true;
+					}
+
+					slashing = true;
+					moveOK = false;
+					lastUpdate = TimeUtils.nanoTime();
+				}
+
+
+				//code for slashing to the left
+				if (Gdx.input.isKeyJustPressed(Keys.LEFT) && moveOK)
+				{
+
+					if (facingRight)
+					{
+						flip();
+						facingRight = false;
+					}
+
+					slashing = true;
+					moveOK = false;
+					lastUpdate = TimeUtils.nanoTime();
+				}
+
+
+				//End Slashing Animation after set time
 		/*
 		if(slashing && TimeUtils.nanoTime() - lastUpdate > 125000000)
 		{
@@ -464,54 +500,74 @@ public class ZombieArena implements ApplicationListener
 		*/
 
 
-		//End throwing/hammer animation and allow movement after hammer has been fired
+				//End throwing/hammer animation and allow movement after hammer has been fired
 /*		if(!slashing && !slamming && !dodging && TimeUtils.nanoTime() - hammerUpdate > 100000000)
 		{
 				moveOK = true;
 		}
 */
 
-		if(hammerX < 1 - 156) flying=false;
-		if(hammerX > screenX) flying=false;
-		if(hammerY > screenY) flying=false;
+				if (hammerX < 1 - 156) flying = false;
+				if (hammerX > screenX) flying = false;
+				if (hammerY > screenY) flying = false;
 
 
+				//// PAUSE
+				if (Gdx.input.isKeyJustPressed(Keys.P))
+					state = State.PAUSE;
 
-		//// Move LEFT and RIGHT and STAND
-		if(Gdx.input.isKeyPressed(Keys.A) && moveOK)
-		{
-			step();
 
-			playPos.setX(playPos.getX() - 275 * Gdx.graphics.getDeltaTime());
+				//// Move LEFT and RIGHT and STAND
+				if (Gdx.input.isKeyPressed(Keys.A) && moveOK)
+				{
+					step();
 
-			if(facingRight)
-			{
-				flip();
-				facingRight = false;
-			}
+					playPos.setX(playPos.getX() - 275 * Gdx.graphics.getDeltaTime());
+
+					if (facingRight)
+					{
+						flip();
+						facingRight = false;
+					}
+				} else if (Gdx.input.isKeyPressed(Keys.D) && moveOK)
+				{
+					step();
+					playPos.setX(playPos.getX() + 275 * Gdx.graphics.getDeltaTime());
+
+					if (!facingRight)
+					{
+						flip();
+						facingRight = true;
+					}
+				} else if (moveOK)
+				{
+					avatar.set(standing);
+				}
+
+				if (playPos.getX() < 0) playPos.setX(0);
+				if (playPos.getX() > screenX - 220) playPos.setX(screenX - 220);
+
+				break;
 		}
-		else if(Gdx.input.isKeyPressed(Keys.D) && moveOK)
-		{
-			step();
-			playPos.setX(playPos.getX() + 275 * Gdx.graphics.getDeltaTime());
-
-			if(!facingRight)
-			{
-				flip();
-				facingRight = true;
-			}
-		}
-		else if(moveOK)
-		{
-			avatar.set(standing);
-		}
-
-		if(playPos.getX() < 0) playPos.setX(0);
-		if(playPos.getX() > screenX - 220) playPos.setX(screenX - 220);
-
-
 	}
 
+
+	public void spawnEnemy()
+	{
+	}
+
+
+	public int random(int min, int max)
+	{
+		int range = Math.abs(max - min) + 1;
+		return (int)(Math.random() * range) + (min <= max ? min : max);
+	}
+
+
+	private void spawnG()
+	{
+
+	}
 
 
 	@Override

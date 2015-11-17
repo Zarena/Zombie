@@ -105,11 +105,22 @@ public class ZombieArena implements ApplicationListener
 	private float slamUpdate;
 	private boolean slamming;
 
+	//Score Variables
+	private int score;
+	private String yourScoreIs;
+
 
 	@Override
 	public void create ()
 	{
 		background = new Texture(Gdx.files.internal("bg1.png"));
+
+
+		//Score
+		font = new BitmapFont();
+		score = 0;
+		yourScoreIs = "Score:  " + score;
+
 
 		//Pause State
 		state = State.RESUME;
@@ -221,6 +232,9 @@ public class ZombieArena implements ApplicationListener
 		//Cam variables
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, screenX, screenY);
+
+		//Spawn First Enemy
+		spawnEnemy();
 	}
 
 
@@ -348,6 +362,7 @@ public class ZombieArena implements ApplicationListener
 	@Override
 	public void render ()
 	{
+		yourScoreIs = "Score:  " + score;
 
 		switch (state)
 		{
@@ -386,8 +401,13 @@ public class ZombieArena implements ApplicationListener
 
 				batch.draw(background, 0, 0);
 
+
 				//Draw player sprite
 				batch.draw(avatar, playPos.getX(), playPos.getY());
+
+
+				//Draw Score
+				font.draw(batch, yourScoreIs, screenX - (float)(yourScoreIs.length() * 8.75), screenY - 20);
 
 
 				//Draw and update hammer if hammer was fired
@@ -403,7 +423,15 @@ public class ZombieArena implements ApplicationListener
 					hammerY += 600 * Gdx.graphics.getDeltaTime();
 				}
 
+				for(Enemy enemy:  enemies)
+				{
+					batch.draw(enemy.avatar, enemy.x, enemy.y);
+				}
+
 				batch.end();
+
+				if(TimeUtils.nanoTime() - lastEnemy > 1000000000)
+					spawnEnemy();
 
 
 				if (dodging && TimeUtils.nanoTime() - lastUpdate > 500000000)
@@ -554,19 +582,18 @@ public class ZombieArena implements ApplicationListener
 
 	public void spawnEnemy()
 	{
+		Ground g = new Ground();
+		g.x = 0;
+		g.y = playPos.y + 25;
+		enemies.add(g);
+		lastEnemy = TimeUtils.nanoTime();
 	}
 
 
-	public int random(int min, int max)
+	public static int random(int min, int max)
 	{
 		int range = Math.abs(max - min) + 1;
 		return (int)(Math.random() * range) + (min <= max ? min : max);
-	}
-
-
-	private void spawnG()
-	{
-
 	}
 
 

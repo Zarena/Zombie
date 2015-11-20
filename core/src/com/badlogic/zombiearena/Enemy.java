@@ -10,6 +10,7 @@ public class Enemy
 
     protected boolean right;
     protected boolean alive;
+    protected boolean attacking;
     protected Texture sheet;
     protected Sprite[] frame;
     protected Sprite avatar;
@@ -25,9 +26,12 @@ public class Enemy
     }
 
 
+
     public void flip()
     {
-        for(int i=maxFrames; i<maxFrames; i++)
+        avatar.flip(true, false);
+
+        for(int i=0; i<maxFrames; i++)
         {
             frame[i].flip(true, false);
         }
@@ -52,7 +56,54 @@ public class Enemy
             frameCounter = 0;
 
         avatar.set(frame[frameCounter]);
+
+        if(right)
+            x = x + 150 * Gdx.graphics.getDeltaTime();
+        else
+            x = x - 150 * Gdx.graphics.getDeltaTime();
     }
+
+    public boolean isAttacking()
+    {
+        return attacking;
+    }
+
+
+    //Scaffold - #STUB - finish me later
+    public boolean playerInRange()
+    {
+        return false;
+    }
+
+
+    public void startAttacking()
+    {
+        attacking = true;
+    }
+
+
+    public void stopAttacking()
+    {
+        attacking = false;
+    }
+
+    //Scaffold - #STUB - finish me later
+    public void attack()
+    {
+
+    }
+
+
+
+    public void facePlayer(float playX)
+    {
+        if(playX < x && right)
+            flip();
+
+        if(playX > x && !right)
+            flip();
+    }
+
 
     public boolean isAlive()
     {

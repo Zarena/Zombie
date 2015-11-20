@@ -406,6 +406,13 @@ public class ZombieArena implements ApplicationListener
 				batch.draw(avatar, playPos.getX(), playPos.getY());
 
 
+				//Draw Enemies
+				for(Enemy enemy:  enemies)
+				{
+					batch.draw(enemy.getAvatar(), enemy.x, enemy.y);
+				}
+
+
 				//Draw Score
 				font.draw(batch, yourScoreIs, screenX - (float)(yourScoreIs.length() * 8.75), screenY - 20);
 
@@ -432,6 +439,7 @@ public class ZombieArena implements ApplicationListener
 
 				if(TimeUtils.nanoTime() - lastEnemy > 1000000000)
 					spawnEnemy();
+				runEnemies();
 
 
 				if (dodging && TimeUtils.nanoTime() - lastUpdate > 500000000)
@@ -580,10 +588,34 @@ public class ZombieArena implements ApplicationListener
 	}
 
 
+	//Handles Enemy Actions (AI)
+	public void runEnemies()
+	{
+		for(Enemy enemy:  enemies)
+		{
+			enemy.facePlayer(playPos.getX() + 110);
+
+			if(enemy.isAttacking() == false)
+			{
+				if(enemy.playerInRange())
+					enemy.startAttacking();
+				else
+				{
+					enemy.step();
+				}
+			}
+			else
+			{
+				enemy.attack();
+			}
+		}
+	}
+
+
 	public void spawnEnemy()
 	{
 		Ground g = new Ground();
-		g.x = 0;
+		g.x = screenX / 2 - 60;
 		g.y = playPos.y + 25;
 		enemies.add(g);
 		lastEnemy = TimeUtils.nanoTime();

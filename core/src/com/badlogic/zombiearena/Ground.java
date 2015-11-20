@@ -13,6 +13,7 @@ public class Ground extends Enemy
     {
         super();
         maxFrames = 10;
+
         sheet = new Texture(Gdx.files.internal("zombieWalk.png"));
         frame = new Sprite[maxFrames];
         for(int i = 0; i < maxFrames; i++)

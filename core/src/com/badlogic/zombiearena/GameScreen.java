@@ -2,179 +2,702 @@ package com.badlogic.zombiearena;
 
 import java.util.Iterator;
 
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
 
 public class GameScreen implements Screen
 {
     final ZombieArena game;
 
-    Texture dropImage;
-    Texture bucketImage;
-    Sound dropSound;
-    Music rainMusic;
-    OrthographicCamera camera;
-    Rectangle bucket;
-    Array<Rectangle> raindrops;
-    long lastDropTime;
-    int dropsGathered;
+    BitmapFont font;
+
+    //Pause Variables
+    //Project 3
+    private enum State
+    {
+        PAUSE, RESUME;
+    }
+    private State state;
+
+
+    //Enemies
+    private Array<Enemy> enemies;
+    private float lastEnemy;
+    // 1000000000 Nanoseconds = 1 second
+    // 1,000,000,000
+
+
+
+    //Game Window Variables
+    private static int screenX=1366;
+    private static int screenY=768;
+    private Texture background;
+
+
+    //Avatar variables
+    private Rectangle playPos;
+    private boolean facingRight, moveOK;
+
+    private Texture avatarTexture;
+    private Sprite standing;
+    private Sprite avatar;
+
+    private Texture dodgeTexture;
+    private Sprite dodgeSprite;
+
+
+    //Walk variables
+    private Sprite[] walk;
+    private int walkCounter;
+
+
+    //"Slash" Variables
+    private Texture attackSheet;
+    private Sprite[] attackSprite;
+
+
+    //Slam Variables
+    private Texture vSlamTexture;
+    private Sprite[] vSlamSprite;
+
+
+    //Utilities
+    public SpriteBatch batch;
+    private OrthographicCamera camera;
+    private float lastUpdate;
+    private boolean firedRight, dodging, halfSwing;
+
+
+    //Throw Trackers
+    private Texture throwStrip;
+    private Sprite[] throwSprite;
+    private int throwCounter;
+    private float throwUpdate;
+    private boolean throwing, flying;
+    private Texture hammerT;
+    private Sprite hammer, hammerL, hammerR;
+    float hammerX, hammerY;
+
+
+    //"Slash" Trackers
+    private int slashCounter;
+    private float slashUpdate;
+    private boolean slashing;
+
+
+    //Slam Trackers
+    private int slamCounter;
+    private float slamUpdate;
+    private boolean slamming;
+
+    //Score Variables
+    //Project 3
+    private int score;
+    private String yourScoreIs;
+
 
     public GameScreen(final ZombieArena gam)
     {
+
         this.game = gam;
 
-        // load the images for the droplet and the bucket, 64x64 pixels each
-        dropImage = new Texture(Gdx.files.internal("droplet.png"));
-        bucketImage = new Texture(Gdx.files.internal("bucket.png"));
+        background = new Texture(Gdx.files.internal("bg1.png"));
 
-        // load the drop sound effect and the rain background "music"
-        dropSound = Gdx.audio.newSound(Gdx.files.internal("drop.wav"));
-        rainMusic = Gdx.audio.newMusic(Gdx.files.internal("rain.mp3"));
-        rainMusic.setLooping(true);
 
-        // create the camera and the SpriteBatch
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
 
-        // create a Rectangle to logically represent the bucket
-        bucket = new Rectangle();
-        bucket.x = 800 / 2 - 64 / 2; // center the bucket horizontally
-        bucket.y = 20; // bottom left corner of the bucket is 20 pixels above
-        // the bottom screen edge
-        bucket.width = 64;
-        bucket.height = 64;
 
-        // create the raindrops array and spawn the first raindrop
-        raindrops = new Array<Rectangle>();
-        spawnRaindrop();
+        //Score
+        //Project 3
+        font = new BitmapFont();
+        score = 0;
+        yourScoreIs = "Score:  " + score;
 
-    }
 
-    private void spawnRaindrop()
-    {
-        Rectangle raindrop = new Rectangle();
-        raindrop.x = MathUtils.random(0, 800 - 64);
-        raindrop.y = 480;
-        raindrop.width = 64;
-        raindrop.height = 64;
-        raindrops.add(raindrop);
-        lastDropTime = TimeUtils.nanoTime();
-    }
+        //Pause State
+        state = State.RESUME;
 
-    @Override
-    public void render(float delta)
-    {
-        // clear the screen with a dark blue color. The
-        // arguments to glClearColor are the red, green
-        // blue and alpha component in the range [0,1]
-        // of the color to be used to clear the screen.
-        Gdx.gl.glClearColor(0, 0, 0.2f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // tell the camera to update its matrices.
-        camera.update();
+        //Enemies
+        enemies = new Array<Enemy>();
 
-        // tell the SpriteBatch to render in the
-        // coordinate system specified by the camera.
-        game.batch.setProjectionMatrix(camera.combined);
 
-        // begin a new batch and draw the bucket and
-        // all drops
-        game.batch.begin();
-        game.font.draw(game.batch, "Drops Collected: " + dropsGathered, 0, 480);
-        game.batch.draw(bucketImage, bucket.x, bucket.y);
-        for (Rectangle raindrop : raindrops) {
-            game.batch.draw(dropImage, raindrop.x, raindrop.y);
-        }
-        game.batch.end();
-
-        // process user input
-        if (Gdx.input.isTouched())
+        //Initialize Throw Trackers
+        throwCounter = 0;
+        throwUpdate =TimeUtils.nanoTime();
+        throwing = false;
+        flying = false;
+        throwStrip = new Texture(Gdx.files.internal("vThrow.png"));
+        throwSprite = new Sprite[18];
+        for(int i=0; i<18; i++)
         {
-            Vector3 touchPos = new Vector3();
-            touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-            camera.unproject(touchPos);
-            bucket.x = touchPos.x - 64 / 2;
+            throwSprite[i] = new Sprite(throwStrip, (i * 356), 0, 356, 256);
         }
-        if (Gdx.input.isKeyPressed(Keys.LEFT))
-            bucket.x -= 200 * Gdx.graphics.getDeltaTime();
-        if (Gdx.input.isKeyPressed(Keys.RIGHT))
-            bucket.x += 200 * Gdx.graphics.getDeltaTime();
 
-        // make sure the bucket stays within the screen bounds
-        if (bucket.x < 0)
-            bucket.x = 0;
-        if (bucket.x > 800 - 64)
-            bucket.x = 800 - 64;
 
-        // check if we need to create a new raindrop
-        if (TimeUtils.nanoTime() - lastDropTime > 1000000000)
-            spawnRaindrop();
+        //Initialize Slam Trackers
+        slamCounter = 0;
+        slamUpdate = TimeUtils.nanoTime();
+        slamming = false;
 
-        // move the raindrops, remove any that are beneath the bottom edge of
-        // the screen or that hit the bucket. In the later case we play back
-        // a sound effect as well.
-        Iterator<Rectangle> iter = raindrops.iterator();
-        while (iter.hasNext()) {
-            Rectangle raindrop = iter.next();
-            raindrop.y -= 200 * Gdx.graphics.getDeltaTime();
-            if (raindrop.y + 64 < 0)
-                iter.remove();
-            if (raindrop.overlaps(bucket)) {
-                dropsGathered++;
-                dropSound.play();
-                iter.remove();
+
+        //Initialize "Slash" Trackers
+        slashCounter=0;
+        halfSwing=false;
+        slashing = false;
+        slashUpdate = slamUpdate;
+
+
+        //Initialize viking slam animation
+        vSlamTexture = new Texture(Gdx.files.internal("vSlam.png"));
+        vSlamSprite = new Sprite[9];
+        for (int i=0; i<9; i++)
+        {
+            vSlamSprite[i] = new Sprite(vSlamTexture, (i * 286 ),0,286,254);
+        }
+
+
+        //avatarTexture is a sprite sheet for the  character texture
+        avatarTexture = new Texture(Gdx.files.internal("viking.png"));
+        dodgeTexture = new Texture(Gdx.files.internal("dodge.png"));
+        dodgeSprite = new Sprite(dodgeTexture);
+
+
+        //AttackSheet is a sprite sheet for the "slash" animations
+        attackSheet = new Texture(Gdx.files.internal("vAttack.png"));
+        attackSprite = new Sprite[12];
+
+        for (int i = 0; i < 12; i++)
+        {
+            attackSprite[i] = new Sprite(attackSheet, (i * 344), 0, 344, 210);
+        }
+
+
+        //Initialize hammer
+        hammerT = new Texture(Gdx.files.internal("hammer.png"));
+        hammerL = new Sprite(hammerT);
+        hammerL.flip(true, false);
+        hammerR = new Sprite(hammerT);
+        hammer = new Sprite(hammerT);
+
+
+        //Booleans for tracking facing, whether or not movement is allowed, whether
+        //or not the player is currently attacking, etc.
+        facingRight = true;
+        moveOK = true;
+        slashing = false;
+        throwing = false;
+        firedRight = true;
+        dodging = false;
+
+
+        //Sprite batch
+        batch = new SpriteBatch();
+
+
+        //playPos is a rectangle for tracking the player's current location
+        //playPos = new Rectangle((800 /2 - 64/2),20, 48, 64);
+        playPos = new Rectangle((screenX/2 - 220/2), 40, 55, 56);
+
+
+        //Setup walk animation
+        //220 x 222
+        walk = new Sprite[9];
+        for(int i=0; i<9; i++)
+        {
+            walk[i] = new Sprite(avatarTexture, (440 + (i*220)), 0, 220, 222);
+        }
+        walkCounter = 0;
+
+
+
+        //Setup basic character (standing)
+        standing = new Sprite(avatarTexture, 0 , 0, 280, 222);
+        avatar = new Sprite(standing);
+
+        //Tracking animation times and enemy spawn times
+        lastUpdate = TimeUtils.nanoTime();
+        lastEnemy = lastUpdate;
+        slashUpdate = lastUpdate;
+
+
+        //Cam variables
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, screenX, screenY);
+
+        //Spawn First Enemy
+        spawnEnemy();
+    }
+
+
+
+    //Method for flipping sprites/textures
+    public void flip()
+    {
+        avatar.flip(true, false);
+        standing.flip(true, false);
+        dodgeSprite.flip(true, false);
+
+
+        if(!flying)
+        {
+            hammer.flip(true, false);
+        }
+
+        for(int i=0; i<9; i++)
+        {
+            walk[i].flip(true, false);
+        }
+
+        for(int i=0; i<12; i++)
+        {
+            attackSprite[i].flip(true, false);
+        }
+
+        for(int i=0; i<9; i++)
+        {
+            vSlamSprite[i].flip(true, false);
+        }
+
+        for(int i=0; i<18; i++)
+        {
+            throwSprite[i].flip(true, false);
+        }
+    }
+
+
+    //Method used to update walk animation
+    public void step()
+    {
+        if (TimeUtils.nanoTime() - lastUpdate > 90000000)
+        {
+            lastUpdate = TimeUtils.nanoTime();
+            walkCounter++;
+            if (walkCounter == 9)
+                walkCounter = 0;
+            avatar.set(walk[walkCounter]);
+        }
+    }
+
+
+    //Throw is a reserved word.
+    public void toss()
+    {
+        if (TimeUtils.nanoTime() - throwUpdate > 22500000)
+        {
+            throwUpdate = TimeUtils.nanoTime();
+            avatar.set(throwSprite[throwCounter]);
+            throwCounter++;
+
+            if(throwCounter==9)
+                flying = true;
+
+            if(throwCounter == 18)
+            {
+                throwCounter = 0;
+                throwing = false;
+                moveOK = true;
             }
         }
     }
 
-    @Override
-    public void resize(int width, int height)
+
+    public void slam()
     {
+        if (TimeUtils.nanoTime() - slamUpdate > 45000000)
+        {
+            slamUpdate = TimeUtils.nanoTime();
+            avatar.set(vSlamSprite[slamCounter]);
+            slamCounter++;
+
+            if(slamCounter == 9)
+            {
+                slamCounter = 0;
+                slamming = false;
+                moveOK = true;
+            }
+        }
+    }
+
+
+    public void slash()
+    {
+        if (TimeUtils.nanoTime() - slashUpdate > 45000000)
+        {
+            slashUpdate = TimeUtils.nanoTime();
+            avatar.set(attackSprite[slashCounter]);
+
+
+            if(!halfSwing)
+            {
+                slashCounter++;
+            }
+            if (slashCounter == 12)
+            {
+                halfSwing = true;
+            }
+            if(halfSwing)
+            {
+                slashCounter--;
+            }
+            if(halfSwing && slashCounter < 0)
+            {
+                Iterator<Enemy> iter = enemies.iterator();
+                while(iter.hasNext())
+                {
+                    Enemy enemy = iter.next();
+
+                    if(enemy.x <= playPos.getX() && !facingRight)
+                        iter.remove();
+
+                    if(enemy.x >= playPos.getX() && facingRight)
+                        iter.remove();
+                }
+                slashCounter =0;
+                halfSwing=false;
+                slashing = false;
+                moveOK = true;
+            }
+        }
+    }
+
+
+    @Override
+    public void render (float delta)
+    {
+        int temp=0;
+        for(Enemy enemy: enemies)
+            temp++;
+        System.out.println(temp);
+
+        //Project 3
+        yourScoreIs = "Score:  " + score;
+
+        switch (state)
+        {
+            case PAUSE:
+                if (Gdx.input.isKeyJustPressed(Keys.P))
+                    state = State.RESUME;
+                break;
+            case RESUME:
+
+
+                Gdx.gl.glClearColor(0, 0, 0.35f, 1);
+                Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+
+                camera.update();
+
+
+                batch.setProjectionMatrix(camera.combined);
+
+                if (throwing)
+                {
+                    toss();
+                }
+
+                if (slashing)
+                {
+                    slash();
+                }
+
+                if (slamming)
+                {
+                    slam();
+                }
+
+                batch.begin();
+
+                batch.draw(background, 0, 0);
+
+
+                //Draw player sprite
+                batch.draw(avatar, playPos.getX(), playPos.getY());
+
+
+                //Draw Enemies
+                for(Enemy enemy:  enemies)
+                {
+                    batch.draw(enemy.getAvatar(), enemy.x, enemy.y);
+                }
+
+
+                //Draw Score
+                font.draw(batch, yourScoreIs, screenX - (float)(yourScoreIs.length() * 8.75), screenY - 20);
+
+
+                //Draw and update hammer if hammer was fired
+                if (flying && firedRight)
+                {
+                    batch.draw(hammer, hammerX+140, hammerY+110);
+                    hammerX += 600 * Gdx.graphics.getDeltaTime();
+                    hammerY += 600 * Gdx.graphics.getDeltaTime();
+                } else if (flying)
+                {
+                    batch.draw(hammer, hammerX-80, hammerY+120);
+                    hammerX -= 600 * Gdx.graphics.getDeltaTime();
+                    hammerY += 600 * Gdx.graphics.getDeltaTime();
+                }
+
+                for(Enemy enemy:  enemies)
+                {
+                    batch.draw(enemy.avatar, enemy.x, enemy.y);
+                }
+
+                batch.end();
+
+                if(TimeUtils.nanoTime() - lastEnemy > 2000000000)
+                    spawnEnemy();
+                runEnemies();
+
+
+                if (dodging && TimeUtils.nanoTime() - lastUpdate > 500000000)
+                {
+                    avatar.set(standing);
+                    moveOK = true;
+                    dodging = false;
+                }
+
+
+                if (dodging)
+                {
+                    if (facingRight)
+                        playPos.setX(playPos.getX() + 800 * Gdx.graphics.getDeltaTime());
+                    else
+                        playPos.setX(playPos.getX() - 800 * Gdx.graphics.getDeltaTime());
+                }
+
+                ///////////////////////// INPUT ////////////////////////////
+                // - SPACE
+                if (Gdx.input.isKeyJustPressed(Keys.SPACE) && moveOK && !dodging)
+                {
+                    dodging = true;
+                    moveOK = false;
+                    lastUpdate = TimeUtils.nanoTime();
+                    avatar.set(dodgeSprite);
+                }
+
+
+                // - UP
+                if (Gdx.input.isKeyJustPressed(Keys.UP) && moveOK && !flying)
+                {
+                    firedRight = facingRight;
+                    if (firedRight)
+                        hammer.set(hammerR);
+                    else
+                        hammer.set(hammerL);
+
+                    throwing = true;
+                    moveOK = false;
+                    hammerX = playPos.getX();
+                    hammerY = playPos.getY();
+                }
+
+
+                // - DOWN
+                if (Gdx.input.isKeyJustPressed(Keys.DOWN) && moveOK)
+                {
+                    slamming = true;
+                    moveOK = false;
+                    lastUpdate = TimeUtils.nanoTime();
+                }
+
+
+                //Code for slashing to the right
+                if (Gdx.input.isKeyJustPressed(Keys.RIGHT) && moveOK)
+                {
+
+                    if (!facingRight)
+                    {
+                        flip();
+                        facingRight = true;
+                    }
+
+                    slashing = true;
+                    moveOK = false;
+                    lastUpdate = TimeUtils.nanoTime();
+                }
+
+
+                //code for slashing to the left
+                if (Gdx.input.isKeyJustPressed(Keys.LEFT) && moveOK)
+                {
+
+                    if (facingRight)
+                    {
+                        flip();
+                        facingRight = false;
+                    }
+
+                    slashing = true;
+                    moveOK = false;
+                    lastUpdate = TimeUtils.nanoTime();
+                }
+
+
+                //End Slashing Animation after set time
+		/*
+		if(slashing && TimeUtils.nanoTime() - lastUpdate > 125000000)
+		{
+			moveOK = true;
+			slashing = false;
+		}
+		*/
+
+
+                //End throwing/hammer animation and allow movement after hammer has been fired
+/*		if(!slashing && !slamming && !dodging && TimeUtils.nanoTime() - hammerUpdate > 100000000)
+		{
+				moveOK = true;
+		}
+*/
+
+                if (hammerX < 1 - 156) flying = false;
+                if (hammerX > screenX) flying = false;
+                if (hammerY > screenY) flying = false;
+
+
+                //// PAUSE
+                if (Gdx.input.isKeyJustPressed(Keys.P))
+                    state = State.PAUSE;
+
+
+                //// Move LEFT and RIGHT and STAND
+                if (Gdx.input.isKeyPressed(Keys.A) && moveOK)
+                {
+                    step();
+
+                    playPos.setX(playPos.getX() - 275 * Gdx.graphics.getDeltaTime());
+
+                    if (facingRight)
+                    {
+                        flip();
+                        facingRight = false;
+                    }
+                } else if (Gdx.input.isKeyPressed(Keys.D) && moveOK)
+                {
+                    step();
+                    playPos.setX(playPos.getX() + 275 * Gdx.graphics.getDeltaTime());
+
+                    if (!facingRight)
+                    {
+                        flip();
+                        facingRight = true;
+                    }
+                } else if (moveOK)
+                {
+                    avatar.set(standing);
+                }
+
+                if (playPos.getX() < 0) playPos.setX(0);
+                if (playPos.getX() > screenX - 220) playPos.setX(screenX - 220);
+
+                break;
+        }
+    }
+
+
+    //Handles Enemy Actions (AI)
+    public void runEnemies()
+    {
+        for(Enemy enemy:  enemies)
+        {
+            enemy.facePlayer(playPos.getX() + 110);
+
+            if(enemy.isAttacking() == false)
+            {
+                if(enemy.playerInRange())
+                    enemy.startAttacking();
+                else
+                {
+                    enemy.step();
+                }
+            }
+            else
+            {
+                enemy.attack();
+            }
+        }
+    }
+
+
+
+    //Project 3
+    public void spawnEnemy()
+    {
+        Ground g = new Ground();
+        g.x = screenX / 2 - 60;
+        g.y = playPos.y + 25;
+        enemies.add(g);
+        lastEnemy = TimeUtils.nanoTime();
+    }
+
+
+    //To be Used later
+    public static int random(int min, int max)
+    {
+        int range = Math.abs(max - min) + 1;
+        return (int)(Math.random() * range) + (min <= max ? min : max);
     }
 
     @Override
     public void show()
     {
-        // start the playback of the background music
-        // when the screen is shown
-        rainMusic.play();
+        //start the playback of the background music when screen is shown
     }
+
 
     @Override
     public void hide()
     {
+
+    }
+
+
+    @Override
+    public void dispose()
+    {
+        background.dispose();
+        avatarTexture.dispose();
+        dodgeTexture.dispose();
+        attackSheet.dispose();
+        vSlamTexture.dispose();
+        throwStrip.dispose();
+        hammerT.dispose();
+    }
+
+    @Override
+    public void resize(int width, int height)
+    {
+
     }
 
     @Override
     public void pause()
     {
+
     }
 
     @Override
     public void resume()
     {
-    }
 
-    @Override
-    public void dispose()
-    {
-        dropImage.dispose();
-        bucketImage.dispose();
-        dropSound.dispose();
-        rainMusic.dispose();
     }
-
 }

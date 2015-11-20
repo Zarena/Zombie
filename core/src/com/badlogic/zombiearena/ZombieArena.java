@@ -116,6 +116,8 @@ public class ZombieArena implements ApplicationListener
 		background = new Texture(Gdx.files.internal("bg1.png"));
 
 
+
+
 		//Score
 		font = new BitmapFont();
 		score = 0;
@@ -350,6 +352,17 @@ public class ZombieArena implements ApplicationListener
 			}
 			if(halfSwing && slashCounter < 0)
 			{
+				Iterator<Enemy> iter = enemies.iterator();
+				while(iter.hasNext())
+				{
+					Enemy enemy = iter.next();
+
+					if(enemy.x <= playPos.getX() && !facingRight)
+						iter.remove();
+
+					if(enemy.x >= playPos.getX() && facingRight)
+						iter.remove();
+				}
 				slashCounter =0;
 				halfSwing=false;
 				slashing = false;
@@ -362,6 +375,11 @@ public class ZombieArena implements ApplicationListener
 	@Override
 	public void render ()
 	{
+		int temp=0;
+		for(Enemy enemy: enemies)
+			temp++;
+		System.out.println(temp);
+
 		yourScoreIs = "Score:  " + score;
 
 		switch (state)
@@ -437,7 +455,7 @@ public class ZombieArena implements ApplicationListener
 
 				batch.end();
 
-				if(TimeUtils.nanoTime() - lastEnemy > 1000000000)
+				if(TimeUtils.nanoTime() - lastEnemy > 2000000000)
 					spawnEnemy();
 				runEnemies();
 

@@ -37,7 +37,7 @@ public class GameScreen implements Screen
     }
     private State state;
 
-
+    //Project 3
     //Sounds
     private Sound hammerSlam;
     private Sound hammerSwing1;
@@ -45,8 +45,8 @@ public class GameScreen implements Screen
     private Sound enemyHiss;
     private Sound dodge;
 
-
-    //Enemies
+    //Project 3
+    //Enemies are kept in an array just like raindrops from the drop toy
     private Array<Enemy> enemies;
     private float lastEnemy;
     // 1000000000 Nanoseconds = 1 second
@@ -337,6 +337,7 @@ public class GameScreen implements Screen
     }
 
 
+    //Method controls the slam attack (down key)
     public void slam()
     {
         if (TimeUtils.nanoTime() - slamUpdate > 45000000)
@@ -358,6 +359,7 @@ public class GameScreen implements Screen
     }
 
 
+    //Method controls the attacks triggered by left and right arrow keys
     public void slash()
     {
         if (TimeUtils.nanoTime() - slashUpdate > 45000000)
@@ -572,23 +574,6 @@ public class GameScreen implements Screen
                 }
 
 
-                //End Slashing Animation after set time
-		/*
-		if(slashing && TimeUtils.nanoTime() - lastUpdate > 125000000)
-		{
-			moveOK = true;
-			slashing = false;
-		}
-		*/
-
-
-                //End throwing/hammer animation and allow movement after hammer has been fired
-/*		if(!slashing && !slamming && !dodging && TimeUtils.nanoTime() - hammerUpdate > 100000000)
-		{
-				moveOK = true;
-		}
-*/
-
                 if (hammerX < 1 - 156) flying = false;
                 if (hammerX > screenX) flying = false;
                 if (hammerY > screenY) flying = false;
@@ -641,7 +626,7 @@ public class GameScreen implements Screen
         {
             enemy.facePlayer(playPos.getX() + 110);
 
-            if(enemy.isAttacking() == false)
+            if(!enemy.isAttacking())
             {
                 if(enemy.playerInRange())
                     enemy.startAttacking();

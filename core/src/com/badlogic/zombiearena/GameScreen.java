@@ -38,6 +38,14 @@ public class GameScreen implements Screen
     private State state;
 
 
+    //Sounds
+    private Sound hammerSlam;
+    private Sound hammerSwing1;
+    private Sound hammerThrow;
+    private Sound enemyHiss;
+    private Sound dodge;
+
+
     //Enemies
     private Array<Enemy> enemies;
     private float lastEnemy;
@@ -123,6 +131,13 @@ public class GameScreen implements Screen
 
 
 
+        //Project 3
+        //Initialize sounds
+        hammerSlam = Gdx.audio.newSound(Gdx.files.internal("HammerSlam.mp3"));
+        hammerSwing1 = Gdx.audio.newSound(Gdx.files.internal("HammerSwing1.mp3"));
+        hammerThrow = Gdx.audio.newSound(Gdx.files.internal("HammerThrow.mp3"));
+        enemyHiss = Gdx.audio.newSound(Gdx.files.internal("EnemyHiss.mp3"));
+        dodge = Gdx.audio.newSound(Gdx.files.internal("HeroDodge.mp3"));
 
         //Score
         //Project 3
@@ -306,6 +321,9 @@ public class GameScreen implements Screen
             avatar.set(throwSprite[throwCounter]);
             throwCounter++;
 
+            if(throwCounter==6)
+                hammerThrow.play();
+
             if(throwCounter==9)
                 flying = true;
 
@@ -326,6 +344,9 @@ public class GameScreen implements Screen
             slamUpdate = TimeUtils.nanoTime();
             avatar.set(vSlamSprite[slamCounter]);
             slamCounter++;
+
+            if(slamCounter == 4)
+                hammerSlam.play();
 
             if(slamCounter == 9)
             {
@@ -349,6 +370,8 @@ public class GameScreen implements Screen
             {
                 slashCounter++;
             }
+            if(slashCounter==2)
+                hammerSwing1.play();
             if (slashCounter == 12)
             {
                 halfSwing = true;
@@ -382,10 +405,6 @@ public class GameScreen implements Screen
     @Override
     public void render (float delta)
     {
-        int temp=0;
-        for(Enemy enemy: enemies)
-            temp++;
-        System.out.println(temp);
 
         //Project 3
         yourScoreIs = "Score:  " + score;
@@ -488,6 +507,7 @@ public class GameScreen implements Screen
                 // - SPACE
                 if (Gdx.input.isKeyJustPressed(Keys.SPACE) && moveOK && !dodging)
                 {
+                    dodge.play();
                     dodging = true;
                     moveOK = false;
                     lastUpdate = TimeUtils.nanoTime();
@@ -647,6 +667,7 @@ public class GameScreen implements Screen
         g.y = playPos.y + 25;
         enemies.add(g);
         lastEnemy = TimeUtils.nanoTime();
+        enemyHiss.play();
     }
 
 
@@ -681,6 +702,9 @@ public class GameScreen implements Screen
         vSlamTexture.dispose();
         throwStrip.dispose();
         hammerT.dispose();
+        hammerThrow.dispose();
+        hammerSwing1.dispose();
+        hammerSlam.dispose();
     }
 
     @Override

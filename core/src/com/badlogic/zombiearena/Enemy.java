@@ -3,6 +3,7 @@ package com.badlogic.zombiearena;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.utils.TimeUtils;
 
 public class Enemy
 {
@@ -17,12 +18,19 @@ public class Enemy
     protected int frameCounter;
     protected int maxFrames;
     public float x,y;
+    protected float lastUpdate;
 
-    public Enemy()
+    //str refers to the strength of the enemy and will be used to determine how much damage it deals
+    //hp is how much damage the enemy can take before it is destroyed
+    protected int str, hp;
+
+    public Enemy(int round)
     {
+        hp = round;
+        str = round;
         frameCounter = 0;
         alive = true;
-        right = false;
+        lastUpdate = TimeUtils.nanoTime();
     }
 
 
@@ -48,19 +56,11 @@ public class Enemy
         return avatar;
     }
 
+
+
     public void step()
     {
-        frameCounter ++;
 
-        if(frameCounter == 10)
-            frameCounter = 0;
-
-        avatar.set(frame[frameCounter]);
-
-        if(right)
-            x = x + 150 * Gdx.graphics.getDeltaTime();
-        else
-            x = x - 150 * Gdx.graphics.getDeltaTime();
     }
 
     public boolean isAttacking()

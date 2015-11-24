@@ -37,6 +37,9 @@ public class GameScreen implements Screen
     }
     private State state;
 
+    private int round;
+
+
     //Project 3
     //Sounds
     private Sound hammerSlam;
@@ -130,6 +133,7 @@ public class GameScreen implements Screen
         background = new Texture(Gdx.files.internal("bg1.png"));
 
 
+        round = 1;
 
         //Project 3
         //Initialize sounds
@@ -644,15 +648,33 @@ public class GameScreen implements Screen
 
 
 
+
     //Project 3
     public void spawnEnemy()
     {
-        Ground g = new Ground();
-        g.x = screenX / 2 - 60;
-        g.y = playPos.y + 25;
-        enemies.add(g);
-        lastEnemy = TimeUtils.nanoTime();
-        enemyHiss.play();
+        int temp = random(0,1);
+        System.out.println(temp);
+        switch(temp)
+        {
+            case 0:
+                Ground g = new Ground(round);
+                g.x = playPos.getX() - 1366;
+                g.y = playPos.y + 25;
+                enemies.add(g);
+                lastEnemy = TimeUtils.nanoTime();
+                enemyHiss.play();
+                break;
+            case 1:
+                Air a = new Air(round);
+                a.x = playPos.getX() - 1366;
+                a.y = playPos.y + random(350, screenY - 40 - 136);
+                enemies.add(a);
+                lastEnemy = TimeUtils.nanoTime();
+                break;
+            default:
+                System.out.println("default");
+                break;
+        }
     }
 
 

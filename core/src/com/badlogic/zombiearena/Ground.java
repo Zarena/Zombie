@@ -5,13 +5,14 @@ package com.badlogic.zombiearena;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.utils.TimeUtils;
 
 public class Ground extends Enemy
 {
 
-    public Ground()
+    public Ground(int round)
     {
-        super();
+        super(round);
         maxFrames = 10;
 
         sheet = new Texture(Gdx.files.internal("zombieWalk.png"));
@@ -21,6 +22,27 @@ public class Ground extends Enemy
             frame[i] = new Sprite(sheet, (i*100), 0, 100, 156);
         }
         avatar = new Sprite(frame[0]);
+        right = false;
+    }
+
+    public void step()
+    {
+        if(TimeUtils.nanoTime() - lastUpdate > 100000000 )
+        {
+            lastUpdate = TimeUtils.nanoTime();
+            frameCounter++;
+
+            if (frameCounter == maxFrames)
+                frameCounter = 0;
+
+            avatar.set(frame[frameCounter]);
+
+        }
+
+        if (right)
+            x = x + 150 * Gdx.graphics.getDeltaTime();
+        else
+            x = x - 150 * Gdx.graphics.getDeltaTime();
     }
 
 }

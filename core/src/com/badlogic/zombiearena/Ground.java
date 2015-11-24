@@ -23,6 +23,7 @@ public class Ground extends Enemy
         }
         avatar = new Sprite(frame[0]);
         right = false;
+        type = 1;
     }
 
     public void step()

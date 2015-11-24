@@ -394,10 +394,16 @@ public class GameScreen implements Screen
                     Enemy enemy = iter.next();
 
                     if(enemy.x <= playPos.getX() && !facingRight)
+                    {
                         iter.remove();
+                        score++;
+                    }
 
                     if(enemy.x >= playPos.getX() && facingRight)
+                    {
                         iter.remove();
+                        score++;
+                    }
                 }
                 slashCounter =0;
                 halfSwing=false;
@@ -628,8 +634,20 @@ public class GameScreen implements Screen
     {
         for(Enemy enemy:  enemies)
         {
-            enemy.facePlayer(playPos.getX() + 110);
-
+            switch(enemy.type)
+            {
+                case 1:
+                    enemy.facePlayer(playPos.getX() + 110);
+                    break;
+                case 2:
+                    if(enemy.x > 1366 - 188)
+                        enemy.facePlayer(0);
+                    if(enemy.x < 0)
+                        enemy.facePlayer(1366);
+                    break;
+                default:
+                    break;
+            }
             if(!enemy.isAttacking())
             {
                 if(enemy.playerInRange())
@@ -653,12 +671,27 @@ public class GameScreen implements Screen
     public void spawnEnemy()
     {
         int temp = random(0,1);
-        System.out.println(temp);
+        int side = random(0,1);
+        int sideX =0;
+
+        switch(side)
+        {
+            case 0:
+                sideX = -200;
+                break;
+            case 1:
+                sideX = 1566;
+                break;
+            default:
+                sideX = -200;
+                break;
+        }
+
         switch(temp)
         {
             case 0:
                 Ground g = new Ground(round);
-                g.x = playPos.getX() - 1366;
+                g.x = sideX;
                 g.y = playPos.y + 25;
                 enemies.add(g);
                 lastEnemy = TimeUtils.nanoTime();
@@ -666,7 +699,7 @@ public class GameScreen implements Screen
                 break;
             case 1:
                 Air a = new Air(round);
-                a.x = playPos.getX() - 1366;
+                a.x = sideX;
                 a.y = playPos.y + random(350, screenY - 40 - 136);
                 enemies.add(a);
                 lastEnemy = TimeUtils.nanoTime();

@@ -23,6 +23,7 @@ public class Air extends Enemy
         reverse = false;
         right = true;
         frameCounter=0;
+        type = 2;
     }
 
     public void step()

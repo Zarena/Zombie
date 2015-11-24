@@ -19,6 +19,7 @@ public class Enemy
     protected int maxFrames;
     public float x,y;
     protected float lastUpdate;
+    public int type;
 
     //str refers to the strength of the enemy and will be used to determine how much damage it deals
     //hp is how much damage the enemy can take before it is destroyed

@@ -40,6 +40,10 @@ public class GameScreen implements Screen
     private int round;
 
 
+    private boolean hit;
+    private boolean spawnOK;
+
+
     //Project 3
     //Sounds
     private Sound hammerSlam;
@@ -134,6 +138,9 @@ public class GameScreen implements Screen
 
 
         round = 1;
+
+        hit = false;
+        spawnOK = true;
 
         //Project 3
         //Initialize sounds
@@ -382,11 +389,8 @@ public class GameScreen implements Screen
             {
                 halfSwing = true;
             }
-            if(halfSwing)
-            {
-                slashCounter--;
-            }
-            if(halfSwing && slashCounter < 0)
+
+            if(halfSwing && !hit)
             {
                 Iterator<Enemy> iter = enemies.iterator();
                 while(iter.hasNext())
@@ -405,10 +409,21 @@ public class GameScreen implements Screen
                         score++;
                     }
                 }
+                hit = true;
+            }
+
+            if(halfSwing)
+            {
+                slashCounter--;
+            }
+            if(halfSwing && slashCounter < 0)
+            {
+
                 slashCounter =0;
                 halfSwing=false;
                 slashing = false;
                 moveOK = true;
+                hit = false;
             }
         }
     }
@@ -495,7 +510,8 @@ public class GameScreen implements Screen
                 batch.end();
 
                 if(TimeUtils.nanoTime() - lastEnemy > 2000000000)
-                    spawnEnemy();
+                    if(spawnOK)
+                        spawnEnemy();
                 runEnemies();
 
 
@@ -594,6 +610,13 @@ public class GameScreen implements Screen
                     state = State.PAUSE;
 
 
+                if(Gdx.input.isKeyJustPressed(Keys.E))
+                    if(spawnOK)
+                        spawnOK = false;
+                    else
+                    spawnOK = true;
+
+
                 //// Move LEFT and RIGHT and STAND
                 if (Gdx.input.isKeyPressed(Keys.A) && moveOK)
                 {
@@ -637,12 +660,12 @@ public class GameScreen implements Screen
             switch(enemy.type)
             {
                 case 1:
-                    enemy.facePlayer(playPos.getX() + 110);
+                        enemy.facePlayer(playPos.getX() + 110);
                     break;
                 case 2:
-                    if(enemy.x > 1366 - 188)
+                    if (enemy.x > 1366 - 188)
                         enemy.facePlayer(0);
-                    if(enemy.x < 0)
+                    if (enemy.x < 0)
                         enemy.facePlayer(1366);
                     break;
                 default:
@@ -654,7 +677,7 @@ public class GameScreen implements Screen
                     enemy.startAttacking();
                 else
                 {
-                    enemy.step();
+                      enemy.step();
                 }
             }
             else

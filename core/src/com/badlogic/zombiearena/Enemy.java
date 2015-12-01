@@ -38,6 +38,7 @@ public class Enemy
 
     public void flip()
     {
+        // This is the animations to match the direction the enemy is actually moving towards.
         avatar.flip(true, false);
 
         for(int i=0; i<maxFrames; i++)
@@ -98,6 +99,7 @@ public class Enemy
 
     public void facePlayer(float playX)
     {
+        // This small section is to make sure that the enemies are always facing towards the player.
         if(playX < x && right)
             flip();
 

@@ -16,6 +16,7 @@ public class ZombieArena extends Game
 
 	public void create()
 	{
+		//Creates and calls the main menu screen from the appropriately titled MainMenuScreen java file.
 		batch = new SpriteBatch();
 		//Use LibGDX's default Arial font.
 		font = new BitmapFont();

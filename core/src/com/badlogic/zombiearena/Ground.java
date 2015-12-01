@@ -15,6 +15,8 @@ public class Ground extends Enemy
         super(round);
         maxFrames = 10;
 
+        // This section is for the Zombies' walk animation
+
         sheet = new Texture(Gdx.files.internal("zombieWalk.png"));
         frame = new Sprite[maxFrames];
         for(int i = 0; i < maxFrames; i++)
@@ -28,6 +30,8 @@ public class Ground extends Enemy
 
     public void step()
     {
+        // This section is to for the speed at which the walk animation for zombies plays and moves.
+        // This also sets the walk animation for both directions using an if statement.
         if(TimeUtils.nanoTime() - lastUpdate > 100000000 )
         {
             lastUpdate = TimeUtils.nanoTime();

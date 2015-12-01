@@ -12,13 +12,13 @@ import com.badlogic.gdx.graphics.Texture;
 public class MainMenuScreen implements Screen
 {
     final ZombieArena game;
-
     OrthographicCamera camera;
     private Texture splashScreen;
     private Texture logoSplash;
 
     public MainMenuScreen(final ZombieArena gam)
     {
+        // The following sets the screen size and loads the pictures onto our start screen.
         game = gam;
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1366, 768);
@@ -29,6 +29,9 @@ public class MainMenuScreen implements Screen
     @Override
     public void render(float delta)
     {
+        // Below, our text is displayed and sets the condition
+        // that if any button is pressed while on the screen
+        // it will start the game.
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 

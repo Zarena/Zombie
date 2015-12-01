@@ -1,3 +1,4 @@
+// Air enemies
 package com.badlogic.zombiearena;
 
 import com.badlogic.gdx.Gdx;
@@ -11,6 +12,7 @@ public class Air extends Enemy
 
     public Air(int round)
     {
+        // This draws the dragon sprite sheet into the game.
         super(round);
         maxFrames = 4;
 
@@ -28,6 +30,7 @@ public class Air extends Enemy
 
     public void step()
     {
+        //Section sets the location and speed as well as, direction to where the dragon flies
         if(TimeUtils.nanoTime() - lastUpdate > 50000000)
         {
             lastUpdate = TimeUtils.nanoTime();

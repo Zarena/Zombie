@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import java.security.SecureRandom;
 
 
 public class GameScreen implements Screen
@@ -209,6 +210,8 @@ public class GameScreen implements Screen
         //AttackSheet is a sprite sheet for the "slash" animations
         attackSheet = new Texture(Gdx.files.internal("vAttack.png"));
         attackSprite = new Sprite[12];
+
+        // The for loop is what plays the attack animation sprite sheet
 
         for (int i = 0; i < 12; i++)
         {

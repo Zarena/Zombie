@@ -88,6 +88,7 @@ public class GameScreen implements Screen
     //"Slash" Variables
     private Texture attackSheet;
     private Sprite[] attackSprite;
+    private float contactP;
 
 
     //Slam Variables
@@ -385,33 +386,39 @@ public class GameScreen implements Screen
             {
                 slashCounter++;
             }
-            if(slashCounter==2)
-                hammerSwing1.play();
-            if (slashCounter == 12)
-            {
-                halfSwing = true;
-            }
 
-            if(halfSwing && !hit)
+
+            if(slashCounter == 6 || slashCounter ==7)
             {
                 Iterator<Enemy> iter = enemies.iterator();
                 while(iter.hasNext())
                 {
                     Enemy enemy = iter.next();
 
-                    if(enemy.x <= playPos.getX() && !facingRight)
+                    if (enemy.type == 1)
                     {
-                        iter.remove();
-                        score++;
-                    }
-
-                    if(enemy.x >= playPos.getX() && facingRight)
-                    {
-                        iter.remove();
-                        score++;
+                        if (facingRight && enemy.x > playPos.getX())
+                        {
+                            float temp = (enemy.x - contactP);
+                            if (temp < 0 && temp > -122)
+                                iter.remove();
+                        } else
+                        {
+                            float temp = (contactP - (enemy.x + 100));
+                            if (temp < 0 && temp > -122)
+                                iter.remove();
+                        }
                     }
                 }
-                hit = true;
+
+            }
+
+
+            if(slashCounter==2)
+                hammerSwing1.play();
+            if (slashCounter == 12)
+            {
+                halfSwing = true;
             }
 
             if(halfSwing)
@@ -434,6 +441,9 @@ public class GameScreen implements Screen
     @Override
     public void render (float delta)
     {
+        if(Gdx.input.isKeyJustPressed(Keys.ESCAPE))
+            System.exit(0);
+
 
         //Project 3
         yourScoreIs = "Score:  " + score;
@@ -570,10 +580,11 @@ public class GameScreen implements Screen
                 }
 
 
+
                 //Code for slashing to the right
                 if (Gdx.input.isKeyJustPressed(Keys.RIGHT) && moveOK)
                 {
-
+                    contactP = playPos.getX() + 344 - 15;
                     if (!facingRight)
                     {
                         flip();
@@ -589,7 +600,7 @@ public class GameScreen implements Screen
                 //code for slashing to the left
                 if (Gdx.input.isKeyJustPressed(Keys.LEFT) && moveOK)
                 {
-
+                    contactP = playPos.getX() + 15;
                     if (facingRight)
                     {
                         flip();
@@ -712,7 +723,8 @@ public class GameScreen implements Screen
                 break;
         }
 
-        switch(temp)
+        //TURN ON BY MAKING switch(temp) not switch(0);
+        switch(0)
         {
             case 0:
                 Ground g = new Ground(round);

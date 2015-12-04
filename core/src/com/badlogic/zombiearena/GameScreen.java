@@ -242,8 +242,7 @@ public class GameScreen implements Screen
 
 
         //playPos is a rectangle for tracking the player's current location
-        //playPos = new Rectangle((800 /2 - 64/2),20, 48, 64);
-        playPos = new Rectangle((screenX/2 - 220/2), 40, 55, 56);
+        playPos = new Rectangle((screenX/2 - 220/2), 40, 220, 222);
 
 
         //Setup walk animation

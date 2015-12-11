@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/export/home/hawkdom2/s0975485/.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-backend-android/1.7.0/d8c0e81a68812893d0bf80cea37fbcba9f23d38b/gdx-backend-android-1.7.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="d8c0e81a68812893d0bf80cea37fbcba9f23d38b">
+        <dex dex="/export/home/hawkdom2/s0975485/Desktop/ZArena/Zombie/android/build/intermediates/pre-dexed/debug/gdx-backend-android-1.7.0-9618856624f28d797acdb87dfdf2bd9c6d1446bc.jar" />
+    </item>
+    <item
+        jar="/export/home/hawkdom2/s0975485/.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx-box2d/1.7.0/a560f1f94b939f2b5ccd4eec752797c3ea6e1c92/gdx-box2d-1.7.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="a560f1f94b939f2b5ccd4eec752797c3ea6e1c92">
+        <dex dex="/export/home/hawkdom2/s0975485/Desktop/ZArena/Zombie/android/build/intermediates/pre-dexed/debug/gdx-box2d-1.7.0-4bbbb459046ace3732063d075d472c9c85e5fc19.jar" />
+    </item>
+    <item
+        jar="/export/home/hawkdom2/s0975485/.gradle/caches/modules-2/files-2.1/com.badlogicgames.gdx/gdx/1.7.0/1b08c96132448b5ab9c0cc8dea3e985dcf0166fd/gdx-1.7.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="1b08c96132448b5ab9c0cc8dea3e985dcf0166fd">
+        <dex dex="/export/home/hawkdom2/s0975485/Desktop/ZArena/Zombie/android/build/intermediates/pre-dexed/debug/gdx-1.7.0-c5211aa1eccc6c0dbf247014762853d9a0b9595f.jar" />
+    </item>
+    <item
+        jar="/export/home/hawkdom2/s0975485/Desktop/ZArena/Zombie/core/build/libs/core-1.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="4145b55228af2d8897db773f50e477dee636ede7">
+        <dex dex="/export/home/hawkdom2/s0975485/Desktop/ZArena/Zombie/android/build/intermediates/pre-dexed/debug/core-1.0-a2ed6ec5585703390d36efb07dc73d623a1250d1.jar" />
+    </item>
+
+</items>

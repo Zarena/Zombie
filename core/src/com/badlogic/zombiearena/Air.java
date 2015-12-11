@@ -16,6 +16,7 @@ public class Air extends Enemy
         super(round);
         maxFrames = 4;
 
+        hp =1;
         sheet = new Texture(Gdx.files.internal("dragon.png"));
         frame = new Sprite[maxFrames];
         for(int i=0; i<maxFrames; i++)
@@ -26,6 +27,7 @@ public class Air extends Enemy
         right = true;
         frameCounter=0;
         type = 2;
+        setValue(round);
     }
 
     public void step()

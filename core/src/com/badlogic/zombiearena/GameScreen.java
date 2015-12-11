@@ -1,12 +1,14 @@
 package com.badlogic.zombiearena;
 
-import java.util.Iterator;
 
+
+import java.util.Iterator;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -21,28 +23,47 @@ import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import java.security.SecureRandom;
+
 
 
 public class GameScreen implements Screen
 {
-    final ZombieArena game;
+    //Health Bars
+    private Texture[] eHP;
+    private Texture[] pHP;
 
+
+
+    //Shop Variables
+    private Texture shopFrame;
+    private boolean shopVis = false;
+    private int strPrice;
+    private int asPrice;
+    private int msPrice;
+
+
+
+    //Game Variables
+    final ZombieArena game;
     BitmapFont font;
+    private int round;
+
+
 
     //Pause Variables
     //Project 3
     private enum State
     {
-        PAUSE, RESUME;
+        PAUSE, RESUME
     }
     private State state;
 
-    private int round;
 
 
-    private boolean hit;
-    private boolean spawnOK;
+    //Dodge Cooldown Timer
+    private float dodgeCD;
+
+
 
 
     //Project 3
@@ -52,6 +73,8 @@ public class GameScreen implements Screen
     private Sound hammerThrow;
     private Sound enemyHiss;
     private Sound dodge;
+
+
 
     //Project 3
     //Enemies are kept in an array just like raindrops from the drop toy
@@ -68,21 +91,26 @@ public class GameScreen implements Screen
     private Texture background;
 
 
+
     //Avatar variables
     private Rectangle playPos;
-    private boolean facingRight, moveOK;
+
+    private boolean facingRight;
+    private boolean moveOK;
 
     private Texture avatarTexture;
+    private Texture dodgeTexture;
+
     private Sprite standing;
     private Sprite avatar;
-
-    private Texture dodgeTexture;
     private Sprite dodgeSprite;
+
 
 
     //Walk variables
     private Sprite[] walk;
     private int walkCounter;
+
 
 
     //"Slash" Variables
@@ -91,16 +119,23 @@ public class GameScreen implements Screen
     private float contactP;
 
 
+
     //Slam Variables
     private Texture vSlamTexture;
     private Sprite[] vSlamSprite;
+
 
 
     //Utilities
     public SpriteBatch batch;
     private OrthographicCamera camera;
     private float lastUpdate;
-    private boolean firedRight, dodging, halfSwing;
+
+    private boolean firedRight;
+    private boolean dodging;
+    private boolean halfSwing;
+    private boolean spawnOK;
+
 
 
     //Throw Trackers
@@ -114,10 +149,12 @@ public class GameScreen implements Screen
     float hammerX, hammerY;
 
 
+
     //"Slash" Trackers
     private int slashCounter;
     private float slashUpdate;
     private boolean slashing;
+
 
 
     //Slam Trackers
@@ -125,24 +162,98 @@ public class GameScreen implements Screen
     private float slamUpdate;
     private boolean slamming;
 
+
+
     //Score Variables
     //Project 3
     private int score;
     private String yourScoreIs;
+    private String currentRound;
+
+
+
+    //Round Variables
+    private int maxEnemies;
+    private int spawned;
+    private int badOnScreen;
+    private String roundFinished;
+    private boolean roundInProg;
+
+
+
+    //Player Stats
+    private int playerStr; //player damage
+    private double playerMS;    //player move speed
+    private double playerAS;    //player attack speed
+
+
 
 
     public GameScreen(final ZombieArena gam)
     {
-
         this.game = gam;
-
         background = new Texture(Gdx.files.internal("bg1.png"));
 
 
-        round = 1;
+        eHP = new Texture[20];
+        pHP = new Texture[20];
 
-        hit = false;
+        //Initialize Health Bars
+        for(int i=0; i<20; i++)
+        {
+            eHP[i] = new Texture(Gdx.files.internal("e"+(i+1)*5)+".png");
+            pHP[i] = new Texture(Gdx.files.internal("p"+(i+1)*5)+".png");
+        }
+
+
+
+
+
+        strPrice=5;
+        asPrice=5;
+        msPrice=5;
+
+
+        shopFrame = new Texture(Gdx.files.internal("shop.png"));
+        shopVis = false;
+
+
+
+        dodgeCD = TimeUtils.nanoTime();
+
+
+
+        //Configure Player Starting Stats
+        playerStr = 2;
+        playerMS = 1;
+        playerAS = 1;
+
+
+
+        //Configure First Round
+        round = 1;
+        maxEnemies = (int)(round * 1.5);
+        spawned = 0;
+        badOnScreen = 0;
+        roundFinished = "Round " + round + " Complete!";
+        roundInProg = true;
+        currentRound = "Round:  "+round;
         spawnOK = true;
+
+
+
+        //Score
+        //Project 3
+        font = new BitmapFont();
+        score = 0;
+        yourScoreIs = "Score:  " + score;
+
+
+
+        //Pause State
+        state = State.RESUME;
+
+
 
         //Project 3
         //Initialize sounds
@@ -152,19 +263,11 @@ public class GameScreen implements Screen
         enemyHiss = Gdx.audio.newSound(Gdx.files.internal("EnemyHiss.mp3"));
         dodge = Gdx.audio.newSound(Gdx.files.internal("HeroDodge.mp3"));
 
-        //Score
-        //Project 3
-        font = new BitmapFont();
-        score = 0;
-        yourScoreIs = "Score:  " + score;
-
-
-        //Pause State
-        state = State.RESUME;
 
 
         //Enemies
         enemies = new Array<Enemy>();
+
 
 
         //Initialize Throw Trackers
@@ -180,6 +283,7 @@ public class GameScreen implements Screen
         }
 
 
+
         //Initialize Slam Trackers
         slamCounter = 0;
         slamUpdate = TimeUtils.nanoTime();
@@ -193,6 +297,7 @@ public class GameScreen implements Screen
         slashUpdate = slamUpdate;
 
 
+
         //Initialize viking slam animation
         vSlamTexture = new Texture(Gdx.files.internal("vSlam.png"));
         vSlamSprite = new Sprite[9];
@@ -202,30 +307,36 @@ public class GameScreen implements Screen
         }
 
 
+
         //avatarTexture is a sprite sheet for the  character texture
         avatarTexture = new Texture(Gdx.files.internal("viking.png"));
         dodgeTexture = new Texture(Gdx.files.internal("dodge.png"));
         dodgeSprite = new Sprite(dodgeTexture);
 
 
+
         //AttackSheet is a sprite sheet for the "slash" animations
         attackSheet = new Texture(Gdx.files.internal("vAttack.png"));
         attackSprite = new Sprite[12];
 
-        // The for loop is what plays the attack animation sprite sheet
 
+
+        // The for loop is what plays the attack animation sprite sheet
         for (int i = 0; i < 12; i++)
         {
             attackSprite[i] = new Sprite(attackSheet, (i * 344), 0, 344, 210);
         }
 
 
+
         //Initialize hammer
+        //hammer sprite dimensions = 156 x 152
         hammerT = new Texture(Gdx.files.internal("hammer.png"));
         hammerL = new Sprite(hammerT);
         hammerL.flip(true, false);
         hammerR = new Sprite(hammerT);
         hammer = new Sprite(hammerT);
+
 
 
         //Booleans for tracking facing, whether or not movement is allowed, whether
@@ -238,12 +349,15 @@ public class GameScreen implements Screen
         dodging = false;
 
 
+
         //Sprite batch
         batch = new SpriteBatch();
 
 
+
         //playPos is a rectangle for tracking the player's current location
         playPos = new Rectangle((screenX/2 - 220/2), 40, 220, 222);
+
 
 
         //Setup walk animation
@@ -261,19 +375,36 @@ public class GameScreen implements Screen
         standing = new Sprite(avatarTexture, 0 , 0, 280, 222);
         avatar = new Sprite(standing);
 
+
+
         //Tracking animation times and enemy spawn times
         lastUpdate = TimeUtils.nanoTime();
         lastEnemy = lastUpdate;
         slashUpdate = lastUpdate;
 
 
+
         //Cam variables
         camera = new OrthographicCamera();
         camera.setToOrtho(false, screenX, screenY);
-
-        //Spawn First Enemy
-        spawnEnemy();
     }
+
+
+
+
+
+    //RoundChecker
+    public void roundCheck()
+    {
+        if(badOnScreen == 0 && spawned == maxEnemies && roundInProg)
+        {
+            roundInProg = false;
+            roundFinished = "Round " + round + " Complete!";
+            round++;
+        }
+    }
+
+
 
 
 
@@ -285,25 +416,34 @@ public class GameScreen implements Screen
         dodgeSprite.flip(true, false);
 
 
+
         if(!flying)
         {
             hammer.flip(true, false);
         }
+
+
 
         for(int i=0; i<9; i++)
         {
             walk[i].flip(true, false);
         }
 
+
+
         for(int i=0; i<12; i++)
         {
             attackSprite[i].flip(true, false);
         }
 
+
+
         for(int i=0; i<9; i++)
         {
             vSlamSprite[i].flip(true, false);
         }
+
+
 
         for(int i=0; i<18; i++)
         {
@@ -312,10 +452,13 @@ public class GameScreen implements Screen
     }
 
 
+
+
+
     //Method used to update walk animation
     public void step()
     {
-        if (TimeUtils.nanoTime() - lastUpdate > 90000000)
+        if (TimeUtils.nanoTime() - lastUpdate > (90000000 / playerMS))
         {
             lastUpdate = TimeUtils.nanoTime();
             walkCounter++;
@@ -326,20 +469,29 @@ public class GameScreen implements Screen
     }
 
 
+
+
+
     //Throw is a reserved word.
     public void toss()
     {
-        if (TimeUtils.nanoTime() - throwUpdate > 22500000)
+        if (TimeUtils.nanoTime() - throwUpdate > (22500000 / playerAS))
         {
             throwUpdate = TimeUtils.nanoTime();
             avatar.set(throwSprite[throwCounter]);
             throwCounter++;
 
+
+
             if(throwCounter==6)
                 hammerThrow.play();
 
+
+
             if(throwCounter==9)
                 flying = true;
+
+
 
             if(throwCounter == 18)
             {
@@ -351,17 +503,24 @@ public class GameScreen implements Screen
     }
 
 
+
+
+
     //Method controls the slam attack (down key)
     public void slam()
     {
-        if (TimeUtils.nanoTime() - slamUpdate > 45000000)
+        if (TimeUtils.nanoTime() - slamUpdate > (45000000 / playerAS))
         {
             slamUpdate = TimeUtils.nanoTime();
             avatar.set(vSlamSprite[slamCounter]);
             slamCounter++;
 
+
+
             if(slamCounter == 4)
                 hammerSlam.play();
+
+
 
             if(slamCounter == 9)
             {
@@ -373,19 +532,24 @@ public class GameScreen implements Screen
     }
 
 
+
+
+
     //Method controls the attacks triggered by left and right arrow keys
     public void slash()
     {
-        if (TimeUtils.nanoTime() - slashUpdate > 45000000)
+        if (TimeUtils.nanoTime() - slashUpdate > (45000000 / playerAS))
         {
             slashUpdate = TimeUtils.nanoTime();
             avatar.set(attackSprite[slashCounter]);
+
 
 
             if(!halfSwing)
             {
                 slashCounter++;
             }
+
 
 
             if(slashCounter == 6 || slashCounter ==7)
@@ -401,12 +565,20 @@ public class GameScreen implements Screen
                         {
                             float temp = (enemy.x - contactP);
                             if (temp < 0 && temp > -122)
-                                iter.remove();
+                            {
+                                if(enemy.isAlive());
+                                    enemy.takeDamage(random((playerStr/2), playerStr));
+                                //badOnScreen --;
+                            }
                         } else
                         {
                             float temp = (contactP - (enemy.x + 100));
                             if (temp < 0 && temp > -122)
-                                iter.remove();
+                            {
+                                if(enemy.isAlive());
+                                    enemy.takeDamage(random((int)(playerStr/2), playerStr));
+                                //badOnScreen --;
+                            }
                         }
                     }
                 }
@@ -414,17 +586,26 @@ public class GameScreen implements Screen
             }
 
 
+
             if(slashCounter==2)
                 hammerSwing1.play();
+
+
+
             if (slashCounter == 12)
             {
                 halfSwing = true;
             }
 
+
+
             if(halfSwing)
             {
                 slashCounter--;
             }
+
+
+
             if(halfSwing && slashCounter < 0)
             {
 
@@ -432,21 +613,60 @@ public class GameScreen implements Screen
                 halfSwing=false;
                 slashing = false;
                 moveOK = true;
-                hit = false;
             }
         }
     }
+
+
+
+
+
+    public void hammerHit()
+    {
+        Iterator<Enemy> iter = enemies.iterator();
+        while(iter.hasNext())
+        {
+            Enemy enemy = iter.next();
+            if(enemy.type == 2)
+            {
+                float tempY = enemy.y - hammerY;
+                if(tempY < 104 && tempY > -32)
+                {
+                    if(hammerX < enemy.x)
+                    {
+                        if(enemy.x - hammerX <= 156)
+                        {
+                            enemy.takeDamage(1);
+                        }
+                    }
+                    else
+                    {
+                        if(hammerX - enemy.x <= 188)
+                        {
+                            enemy.takeDamage(1);
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+
+
 
 
     @Override
     public void render (float delta)
     {
         if(Gdx.input.isKeyJustPressed(Keys.ESCAPE))
-            System.exit(0);
+                System.exit(0);
 
 
         //Project 3
         yourScoreIs = "Score:  " + score;
+
+
 
         switch (state)
         {
@@ -461,33 +681,45 @@ public class GameScreen implements Screen
                 Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 
+
                 camera.update();
 
 
+
                 batch.setProjectionMatrix(camera.combined);
+
+
 
                 if (throwing)
                 {
                     toss();
                 }
 
+
+
                 if (slashing)
                 {
                     slash();
                 }
+
+
 
                 if (slamming)
                 {
                     slam();
                 }
 
+
+
                 batch.begin();
+
 
                 batch.draw(background, 0, 0);
 
 
                 //Draw player sprite
                 batch.draw(avatar, playPos.getX(), playPos.getY());
+
 
 
                 //Draw Enemies
@@ -497,31 +729,203 @@ public class GameScreen implements Screen
                 }
 
 
+
                 //Draw Score
+                font.setColor(Color.WHITE);
                 font.draw(batch, yourScoreIs, screenX - (float)(yourScoreIs.length() * 8.75), screenY - 20);
+                font.setColor(Color.FOREST);
+                font.draw(batch, currentRound, 5, screenY-20);
+
 
 
                 //Draw and update hammer if hammer was fired
-                if (flying && firedRight)
+                if (flying)
                 {
-                    batch.draw(hammer, hammerX+140, hammerY+110);
-                    hammerX += 600 * Gdx.graphics.getDeltaTime();
-                    hammerY += 600 * Gdx.graphics.getDeltaTime();
-                } else if (flying)
-                {
-                    batch.draw(hammer, hammerX-80, hammerY+120);
-                    hammerX -= 600 * Gdx.graphics.getDeltaTime();
-                    hammerY += 600 * Gdx.graphics.getDeltaTime();
+                    if (firedRight)
+                    {
+                        batch.draw(hammer, hammerX + 140, hammerY + 110);
+                        hammerX += (600 * Gdx.graphics.getDeltaTime()) * playerAS;
+                        hammerY += (600 * Gdx.graphics.getDeltaTime()) * playerAS;
+                    } else
+                    {
+                        batch.draw(hammer, hammerX - 80, hammerY + 120);
+                        hammerX -= (600 * Gdx.graphics.getDeltaTime()) * playerAS;
+                        hammerY += (600 * Gdx.graphics.getDeltaTime()) * playerAS;
+                    }
+
+                    //check for hammer collisions
+                    hammerHit();
                 }
+
+
 
                 for(Enemy enemy:  enemies)
                 {
                     batch.draw(enemy.avatar, enemy.x, enemy.y);
                 }
 
-                batch.end();
 
-                if(TimeUtils.nanoTime() - lastEnemy > 2000000000)
+
+                roundCheck();
+                if(!roundInProg)
+                {
+                    batch.draw(shopFrame, 341, 192);
+                    font.setColor(Color.WHITE);
+                    font.draw(batch, "Time to Level Up!", 600, 550);
+                    font.draw(batch, "Costs " + strPrice +" for +2 damage!", 478, 452);
+                    font.draw(batch, "Costs " + asPrice +" for +5% attack speed!", 478, 364);
+                    font.draw(batch, "Costs " + msPrice +" for +5% movement speed & dodge cooldown reduction!", 478, 276);
+
+
+
+                    font.draw(batch, "Press SPACE to start the next round!",580, 60);
+
+
+                    font.setColor(Color.RED);
+                    font.draw(batch, roundFinished, 600, 30);
+                }
+
+                    //DRAW HEALTHBARS
+                    for(Enemy enemy: enemies)
+                    {
+                        if(enemy.type==1)
+                        {
+                            double val1;
+                            double val2;
+                            double val3;
+                            int val4;
+
+                            val1 = enemy.hp/round;
+                            System.out.println("Val1:  "+val1);
+
+                            val2 = val1/5;
+                            System.out.println("Val2:  "+val2);
+
+                            val3 = Math.round(val2);
+                            System.out.println("Val3:  "+val3);
+
+                            if(val1 != 1)
+                                val4 = (int)(val3 * 5);
+                            else
+                                val4 = (int)val1;
+                            System.out.println("Val4:  "+val4);
+
+
+                            //val = Math.round(((enemy.hp/round)/5))*5;
+                            //System.out.println(val);
+
+                            switch(val4)
+                            {
+                                case 5:
+                                    batch.draw(eHP[0], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 10:
+                                    batch.draw(eHP[1], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 15:
+                                    batch.draw(eHP[2], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 20:
+                                    batch.draw(eHP[3], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 25:
+                                    batch.draw(eHP[4], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 30:
+                                    batch.draw(eHP[5], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 35:
+                                    batch.draw(eHP[6], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 40:
+                                    batch.draw(eHP[7], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 45:
+                                    batch.draw(eHP[8], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 50:
+                                    batch.draw(eHP[9], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 55:
+                                    batch.draw(eHP[10], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 60:
+                                    batch.draw(eHP[11], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 65:
+                                    batch.draw(eHP[12], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 70:
+                                    batch.draw(eHP[13], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 75:
+                                    batch.draw(eHP[14], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 80:
+                                    batch.draw(eHP[15], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 85:
+                                    batch.draw(eHP[16], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 90:
+                                    batch.draw(eHP[17], enemy.x, enemy.y+166);
+
+                                    break;
+
+                                case 95:
+                                    batch.draw(eHP[18], enemy.x, enemy.y+166);
+                                    break;
+
+                                case 100:
+                                    batch.draw(eHP[19], enemy.x, enemy.y+166);
+                                    break;
+
+                            }
+
+
+
+                        }
+                    }
+
+
+
+                    batch.end();
+
+                if(TimeUtils.nanoTime() - lastEnemy > 2000000000 -  (round * (1000000000/15)) )
                     if(spawnOK)
                         spawnEnemy();
                 runEnemies();
@@ -543,10 +947,20 @@ public class GameScreen implements Screen
                         playPos.setX(playPos.getX() - 800 * Gdx.graphics.getDeltaTime());
                 }
 
+
+
+
+
+                ////////////////////////////////////////////////////////////
                 ///////////////////////// INPUT ////////////////////////////
-                // - SPACE
-                if (Gdx.input.isKeyJustPressed(Keys.SPACE) && moveOK && !dodging)
+                ////////////////////////////////////////////////////////////
+
+
+
+                //////////////  SPACE - DODGE  ////////////////////////////
+                if (Gdx.input.isKeyJustPressed(Keys.SPACE) && roundInProg && moveOK && !dodging && (TimeUtils.nanoTime() - dodgeCD >= (1500000000 / playerMS)))
                 {
+                    dodgeCD = TimeUtils.nanoTime();
                     dodge.play();
                     dodging = true;
                     moveOK = false;
@@ -555,7 +969,64 @@ public class GameScreen implements Screen
                 }
 
 
-                // - UP
+
+                //////////////////  SPACE - CONTINUE ROUND  ////////////////////
+                if(Gdx.input.isKeyJustPressed(Keys.SPACE) && !roundInProg)
+                {
+                    roundInProg = true;
+                    spawnOK = true;
+                    spawned = 0;
+                    maxEnemies = (int)(round * 1.5);
+                    currentRound = "Round:  "+round;
+                }
+
+
+                //////////////////////  CLICK EVENTS FOR SHOP  ///////////////////////
+                if(Gdx.input.justTouched() && !roundInProg)
+                {
+                    Vector3 touchPos = new Vector3();
+                    touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+                    camera.unproject(touchPos);
+
+
+                    if(touchPos.x >= (478) && touchPos.x <= (575) && touchPos.y >= (462) && touchPos.y <= (502) && score >= strPrice)
+                    {
+                        score = score - strPrice;
+                        strPrice = strPrice + 5;
+                        playerStr = playerStr + 2;
+                        yourScoreIs = "Score:  " + score;
+                        System.out.println("STR:  " + playerStr);
+
+                    }
+
+
+
+                    if(touchPos.x >= (341 + 136) && touchPos.x <= (341 + 136 + 100) && touchPos.y >= (374) && touchPos.y <= (413) && score >= asPrice)
+                    {
+                        score = score - asPrice;
+                        asPrice = asPrice + 5;
+                        playerAS = playerAS + 0.05;
+                        yourScoreIs = "Score:  " + score;
+                        System.out.println("AS:  " + playerAS);
+                    }
+
+
+
+                    if(touchPos.x >= (477) && touchPos.x <= (574) && touchPos.y >= (286) && touchPos.y <= (324) && score >= msPrice)
+                    {
+                        score = score - msPrice;
+                        msPrice = msPrice + 5;
+                        playerMS = playerMS + 0.05;
+                        yourScoreIs = "Score:  " + score;
+                        System.out.println("MS:  " + playerMS);
+                    }
+                }
+
+
+
+
+
+                ///////////////  UP  ////////////////////
                 if (Gdx.input.isKeyJustPressed(Keys.UP) && moveOK && !flying)
                 {
                     firedRight = facingRight;
@@ -571,7 +1042,8 @@ public class GameScreen implements Screen
                 }
 
 
-                // - DOWN
+
+                ///////////  DOWN  ///////////////////////////////
                 if (Gdx.input.isKeyJustPressed(Keys.DOWN) && moveOK)
                 {
                     slamming = true;
@@ -581,6 +1053,7 @@ public class GameScreen implements Screen
 
 
 
+                ///////////////////  RIGHT  /////////////////////
                 //Code for slashing to the right
                 if (Gdx.input.isKeyJustPressed(Keys.RIGHT) && moveOK)
                 {
@@ -597,6 +1070,8 @@ public class GameScreen implements Screen
                 }
 
 
+
+                ////////////////////// LEFT /////////////////////
                 //code for slashing to the left
                 if (Gdx.input.isKeyJustPressed(Keys.LEFT) && moveOK)
                 {
@@ -618,24 +1093,21 @@ public class GameScreen implements Screen
                 if (hammerY > screenY) flying = false;
 
 
+
+                //////////////////////  P  ////////////////////////
                 //// PAUSE
                 if (Gdx.input.isKeyJustPressed(Keys.P))
                     state = State.PAUSE;
 
 
-                if(Gdx.input.isKeyJustPressed(Keys.E))
-                    if(spawnOK)
-                        spawnOK = false;
-                    else
-                    spawnOK = true;
 
-
+                //////////////////////  A & D  ///////////////////////////////
                 //// Move LEFT and RIGHT and STAND
                 if (Gdx.input.isKeyPressed(Keys.A) && moveOK)
                 {
                     step();
 
-                    playPos.setX(playPos.getX() - 275 * Gdx.graphics.getDeltaTime());
+                    playPos.setX(playPos.getX() - ((275 * Gdx.graphics.getDeltaTime()) * (float)playerMS));
 
                     if (facingRight)
                     {
@@ -645,7 +1117,7 @@ public class GameScreen implements Screen
                 } else if (Gdx.input.isKeyPressed(Keys.D) && moveOK)
                 {
                     step();
-                    playPos.setX(playPos.getX() + 275 * Gdx.graphics.getDeltaTime());
+                    playPos.setX(playPos.getX() + ((275 * Gdx.graphics.getDeltaTime()) * (float)playerMS));
 
                     if (!facingRight)
                     {
@@ -656,9 +1128,16 @@ public class GameScreen implements Screen
                 {
                     avatar.set(standing);
                 }
+                ///////////////////////////////////////////////////////////////
+                ////////////////////////  END INPUT  //////////////////////////
+                ///////////////////////////////////////////////////////////////
+
+
 
                 if (playPos.getX() < 0) playPos.setX(0);
                 if (playPos.getX() > screenX - 220) playPos.setX(screenX - 220);
+
+
 
                 break;
         }
@@ -684,7 +1163,7 @@ public class GameScreen implements Screen
                 default:
                     break;
             }
-            if(!enemy.isAttacking())
+            if(!enemy.isAttacking() && enemy.isAlive())
             {
                 if(enemy.playerInRange())
                     enemy.startAttacking();
@@ -693,9 +1172,19 @@ public class GameScreen implements Screen
                       enemy.step();
                 }
             }
-            else
+            else if(enemy.isAlive())
             {
                 enemy.attack();
+            }
+            else
+            {
+                boolean check = enemy.playDead();
+                if (check)
+                {
+                    score = score + enemy.getValue();
+                    enemies.removeValue(enemy, false);
+                    badOnScreen --;
+                }
             }
         }
     }
@@ -708,7 +1197,12 @@ public class GameScreen implements Screen
     {
         int temp = random(0,1);
         int side = random(0,1);
-        int sideX =0;
+        int sideX;
+
+        spawned++;
+        badOnScreen++;
+        if(spawned >= maxEnemies)
+            spawnOK = false;
 
         switch(side)
         {
@@ -723,8 +1217,8 @@ public class GameScreen implements Screen
                 break;
         }
 
-        //TURN ON BY MAKING switch(temp) not switch(0);
-        switch(0)
+        //TURN ON BY MAKING switch(temp) not switch(1);
+        switch(temp)
         {
             case 0:
                 Ground g = new Ground(round);
@@ -746,6 +1240,10 @@ public class GameScreen implements Screen
                 break;
         }
     }
+
+
+
+
 
 
     //To be Used later
@@ -783,6 +1281,8 @@ public class GameScreen implements Screen
         hammerSwing1.dispose();
         hammerSlam.dispose();
     }
+
+
 
     @Override
     public void resize(int width, int height)

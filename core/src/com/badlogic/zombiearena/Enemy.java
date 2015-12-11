@@ -20,6 +20,7 @@ public class Enemy
     public float x,y;
     protected float lastUpdate;
     public int type;
+    private int ptValue;
 
     //str refers to the strength of the enemy and will be used to determine how much damage it deals
     //hp is how much damage the enemy can take before it is destroyed
@@ -106,6 +107,38 @@ public class Enemy
         if(playX > x && !right)
             flip();
     }
+
+    public void takeDamage(int damage)
+    {
+        hp = hp - damage;
+        if(hp <= 0)
+            alive = false;
+    }
+
+    public void setValue(int in)
+    {
+        ptValue = in;
+    }
+
+
+
+    public boolean playDead()
+    {
+
+
+        //If end of death frame, return true;
+        if(1==1)
+            return true;
+        return false;
+    }
+
+
+
+    public int getValue()
+    {
+        return ptValue;
+    }
+
 
 
     public boolean isAlive()

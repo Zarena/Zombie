@@ -31,7 +31,9 @@ public class GameScreen implements Screen
     //Health Bars
     private Texture[] eHP;
     private Texture[] pHP;
-
+    private int playerHealth;
+    private boolean vuln;
+    private float vulnTimer;
 
 
     //Shop Variables
@@ -167,7 +169,9 @@ public class GameScreen implements Screen
     //Score Variables
     //Project 3
     private int score;
+    private int totalScore;
     private String yourScoreIs;
+    private String yourTotalIs;
     private String currentRound;
 
 
@@ -197,6 +201,9 @@ public class GameScreen implements Screen
 
         eHP = new Texture[20];
         pHP = new Texture[20];
+        playerHealth = 1;
+        vuln = true;
+        vulnTimer = TimeUtils.nanoTime();
 
         //Initialize Health Bars
         for(int i=0; i<20; i++)
@@ -246,7 +253,10 @@ public class GameScreen implements Screen
         //Project 3
         font = new BitmapFont();
         score = 0;
+        totalScore =0;
         yourScoreIs = "Score:  " + score;
+        yourTotalIs = "Total:  " + totalScore;
+
 
 
 
@@ -657,7 +667,7 @@ public class GameScreen implements Screen
 
 
     @Override
-    public void render (float delta)
+    public void render(float delta)
     {
         if(Gdx.input.isKeyJustPressed(Keys.ESCAPE))
                 System.exit(0);
@@ -665,6 +675,7 @@ public class GameScreen implements Screen
 
         //Project 3
         yourScoreIs = "Score:  " + score;
+        yourTotalIs = "Total:  " + totalScore;
 
 
 
@@ -710,16 +721,18 @@ public class GameScreen implements Screen
                 }
 
 
-
+                //fffffffe - default color
                 batch.begin();
-
 
                 batch.draw(background, 0, 0);
 
 
                 //Draw player sprite
+                if(!vuln)
+                    batch.setColor(Color.LIGHT_GRAY);
                 batch.draw(avatar, playPos.getX(), playPos.getY());
-
+                if(batch.getColor() == Color.BLACK);
+                    batch.setColor(Color.WHITE);
 
 
                 //Draw Enemies
@@ -733,8 +746,15 @@ public class GameScreen implements Screen
                 //Draw Score
                 font.setColor(Color.WHITE);
                 font.draw(batch, yourScoreIs, screenX - (float)(yourScoreIs.length() * 8.75), screenY - 20);
+
+                font.setColor(Color.WHITE);
+                font.draw(batch, yourTotalIs, screenX - (float)(yourTotalIs.length() * 8.75), screenY - 40);
+
+
                 font.setColor(Color.FOREST);
                 font.draw(batch, currentRound, 5, screenY-20);
+
+
 
 
 
@@ -790,31 +810,9 @@ public class GameScreen implements Screen
                     {
                         if(enemy.type==1)
                         {
-                            double val1;
-                            double val2;
-                            double val3;
-                            int val4;
+                            int val = round5(enemy.hp, (round*2));
 
-                            val1 = enemy.hp/round;
-                            System.out.println("Val1:  "+val1);
-
-                            val2 = val1/5;
-                            System.out.println("Val2:  "+val2);
-
-                            val3 = Math.round(val2);
-                            System.out.println("Val3:  "+val3);
-
-                            if(val1 != 1)
-                                val4 = (int)(val3 * 5);
-                            else
-                                val4 = (int)val1;
-                            System.out.println("Val4:  "+val4);
-
-
-                            //val = Math.round(((enemy.hp/round)/5))*5;
-                            //System.out.println(val);
-
-                            switch(val4)
+                            switch(val)
                             {
                                 case 5:
                                     batch.draw(eHP[0], enemy.x, enemy.y+166);
@@ -918,8 +916,112 @@ public class GameScreen implements Screen
 
 
 
+                            }
+
                         }
+
+                switch(playerHealth)
+                {
+                    case 5:
+                        batch.draw(pHP[0], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 10:
+                        batch.draw(pHP[1], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 15:
+                        batch.draw(pHP[2], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 20:
+                        batch.draw(pHP[3], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 25:
+                        batch.draw(pHP[4], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 30:
+                        batch.draw(pHP[5], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 35:
+                        batch.draw(pHP[6], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 40:
+                        batch.draw(pHP[7], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 45:
+                        batch.draw(pHP[8], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 50:
+                        batch.draw(pHP[9], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 55:
+                        batch.draw(pHP[10], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 60:
+                        batch.draw(pHP[11], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 65:
+                        batch.draw(pHP[12], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 70:
+                        batch.draw(pHP[13], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 75:
+                        batch.draw(pHP[14], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 80:
+                        batch.draw(pHP[15], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 85:
+                        batch.draw(pHP[16], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 90:
+                        batch.draw(pHP[17], playPos.x + 50, playPos.y+220);
+
+                        break;
+
+                    case 95:
+                        batch.draw(pHP[18], playPos.x + 50, playPos.y+220);
+                        break;
+
+                    case 100:
+                        batch.draw(pHP[19], playPos.x + 50, playPos.y+220);
+                        break;
                     }
+
+
 
 
 
@@ -942,12 +1044,25 @@ public class GameScreen implements Screen
                 if (dodging)
                 {
                     if (facingRight)
-                        playPos.setX(playPos.getX() + 800 * Gdx.graphics.getDeltaTime());
+                        playPos.setX(playPos.getX() + 1000 * Gdx.graphics.getDeltaTime());
                     else
-                        playPos.setX(playPos.getX() - 800 * Gdx.graphics.getDeltaTime());
+                        playPos.setX(playPos.getX() - 1000 * Gdx.graphics.getDeltaTime());
                 }
 
+                if(!dodging && vuln)
+                    getHit();
 
+                if(!vuln)
+                    checkVuln();
+
+
+
+                if(playerHealth <= 0)
+                {
+                    game.setScreen(new gameOverScreen(game, totalScore));
+                    dispose();
+                    break;
+                }
 
 
 
@@ -995,7 +1110,6 @@ public class GameScreen implements Screen
                         strPrice = strPrice + 5;
                         playerStr = playerStr + 2;
                         yourScoreIs = "Score:  " + score;
-                        System.out.println("STR:  " + playerStr);
 
                     }
 
@@ -1007,7 +1121,6 @@ public class GameScreen implements Screen
                         asPrice = asPrice + 5;
                         playerAS = playerAS + 0.05;
                         yourScoreIs = "Score:  " + score;
-                        System.out.println("AS:  " + playerAS);
                     }
 
 
@@ -1018,7 +1131,6 @@ public class GameScreen implements Screen
                         msPrice = msPrice + 5;
                         playerMS = playerMS + 0.05;
                         yourScoreIs = "Score:  " + score;
-                        System.out.println("MS:  " + playerMS);
                     }
                 }
 
@@ -1182,8 +1294,67 @@ public class GameScreen implements Screen
                 if (check)
                 {
                     score = score + enemy.getValue();
+                    totalScore += enemy.getValue();
                     enemies.removeValue(enemy, false);
                     badOnScreen --;
+                }
+            }
+        }
+    }
+
+
+    private void checkVuln()
+    {
+        if(TimeUtils.nanoTime() - vulnTimer > 1000000000)
+            vuln = true;
+    }
+
+
+
+    public void getHit()
+    {
+        for (Enemy enemy : enemies)
+        {
+            if (enemy.type == 1)
+            {
+                if (facingRight)
+                {
+                    if (enemy.x < playPos.x)
+                    {
+                        if (enemy.x + 100 >= playPos.x)
+                        {
+                            playerHealth -= random(1, 4) * 5;
+                            vuln = false;
+                            vulnTimer = TimeUtils.nanoTime();
+                        }
+                    } else
+                    {
+                        if (playPos.x + 164 >= enemy.x)
+                        {
+                            playerHealth -= random(1, 4) * 5;
+                            vuln = false;
+                            vulnTimer = TimeUtils.nanoTime();
+                        }
+                    }
+                } else
+                {
+                    if (enemy.x < playPos.x)
+                    {
+                        if (enemy.x + 100 >= playPos.x + 112)
+                        {
+                            playerHealth -= random(1, 4) * 5;
+                            vuln = false;
+                            vulnTimer = TimeUtils.nanoTime();
+                        }
+                    } else
+                    {
+                        if (playPos.x + 280 >= enemy.x)
+                        {
+                            playerHealth -= random(1, 4) * 5;
+                            vuln = false;
+                            vulnTimer = TimeUtils.nanoTime();
+                        }
+                    }
                 }
             }
         }
@@ -1236,11 +1407,52 @@ public class GameScreen implements Screen
                 lastEnemy = TimeUtils.nanoTime();
                 break;
             default:
-                System.out.println("default");
                 break;
         }
     }
 
+
+
+
+
+    public int round5(int current, int max)
+    {
+        if(current <= 0)
+            return 0;
+
+        float a = (float) current;
+        float b = (float) max;
+
+        double val1 = (a / b);
+
+        double val2 = val1*100;
+
+        double val3 = Math.round(val2);
+
+        double val4 = val3;
+
+
+        int retval = (int)val3;
+
+
+
+        if((int)val2 != 100 && (int)val2 % 5 != 0)
+        {
+            while (val4 > 5)
+                val4 -= 5;
+
+            switch ((int) val4)
+            {
+                case 3:
+                case 4:
+                    retval = (int) (val3 + 5 - val4);
+                    break;
+                default:
+                    retval = (int) (val3 - val4);
+            }
+        }
+        return retval;
+    }
 
 
 

@@ -10,28 +10,29 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 
-public class MainMenuScreen implements Screen
+public class gameOverScreen implements Screen
 {
     int selection;
-    private Texture hand;
-    final int MENU_SIZE=3;
-    final ZombieArena game;
+    final int MENU_SIZE=2;
     OrthographicCamera camera;
-    private Texture mainBG;
+    private Texture splashScreen;
+    private Texture hand;
     private Color defCol, selCol;
+    private String yourScoreIs;
+    final ZombieArena game;
 
-    public MainMenuScreen(final ZombieArena gam)
+    public gameOverScreen(final ZombieArena gam, int scoreIn)
     {
         // The following sets the screen size and loads the pictures onto our start screen.
         game = gam;
+        yourScoreIs = "Total Score Was:          " + scoreIn;
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1366, 768);
-        mainBG = new Texture(Gdx.files.internal("mainBG.png"));
+        splashScreen = new Texture(Gdx.files.internal("gameOver.png"));
+        hand = new Texture(Gdx.files.internal("zombie_hand_use.png"));
         defCol = Color.FOREST;
         selCol = Color.WHITE;
         selection=0;
-        hand = new Texture(Gdx.files.internal("zombie_hand_use.png"));
-
     }
 
     @Override
@@ -49,40 +50,38 @@ public class MainMenuScreen implements Screen
 
 
         game.batch.begin();
-        game.batch.draw(mainBG, 0, 0);
+
+        game.batch.draw(splashScreen,0 ,0);
 
 
         game.font.setColor(defCol);
+        game.font.draw(game.batch, "Use arrow keys (UP / DOWN) to select an item.", 583, 475);
+        game.font.draw(game.batch, "Press enter to make your selection.", 600, 450);
+
+
+        game.font.draw(game.batch, yourScoreIs, 550, 350);
 
 
         if(selection == 0)
         {
-            game.batch.draw(hand, 450, 340 -100);
+            game.batch.draw(hand, 480, 265);
             game.font.setColor(selCol);
         }
         else
             game.font.setColor(defCol);
-        game.font.draw(game.batch, "Play", 650, 375 -100);
+        game.font.draw(game.batch, "Main Menu", 600, 300);
+
 
 
         if(selection == 1)
         {
-            game.batch.draw(hand, 450, 315 -100);
+
+            game.batch.draw(hand, 480, 240);
             game.font.setColor(selCol);
         }
         else
             game.font.setColor(defCol);
-        game.font.draw(game.batch, "Instructions / Info", 615, 350 -100);
-
-
-        if(selection == 2)
-        {
-            game.batch.draw(hand, 450, 290 -100);
-            game.font.setColor(selCol);
-        }
-        else
-            game.font.setColor(defCol);
-        game.font.draw(game.batch, "Quit", 650, 325 -100);
+        game.font.draw(game.batch, "Quit", 625, 275);
 
 
         game.batch.end();
@@ -112,13 +111,10 @@ public class MainMenuScreen implements Screen
             switch(selection)
             {
                 case 0:
-                    game.setScreen(new GameScreen(game));
+                    game.setScreen(new MainMenuScreen(game));
                     dispose();
                     break;
                 case 1:
-                    game.setScreen(new InfoScreen(game));
-                    break;
-                case 2:
                     dispose();
                     System.exit(0);
                     break;

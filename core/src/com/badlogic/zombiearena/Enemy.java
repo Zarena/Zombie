@@ -22,14 +22,14 @@ public class Enemy
     public int type;
     private int ptValue;
 
-    //str refers to the strength of the enemy and will be used to determine how much damage it deals
+
+
     //hp is how much damage the enemy can take before it is destroyed
-    protected int str, hp;
+    protected int hp;
 
     public Enemy(int round)
     {
-        hp = round;
-        str = round;
+        hp = round * 2;
         frameCounter = 0;
         alive = true;
         lastUpdate = TimeUtils.nanoTime();

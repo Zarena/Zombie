@@ -117,6 +117,8 @@ public class MainMenuScreen implements Screen
                     break;
                 case 1:
                     game.setScreen(new InfoScreen(game));
+                    dispose();
+
                     break;
                 case 2:
                     dispose();
@@ -150,7 +152,11 @@ public class MainMenuScreen implements Screen
     }
 
     @Override
-    public void dispose() {
+    public void dispose()
+    {
+        hand.dispose();
+        game.dispose();
+        mainBG.dispose();
     }
 
 

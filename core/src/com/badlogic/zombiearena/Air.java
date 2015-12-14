@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.TimeUtils;
 public class Air extends Enemy
 {
     boolean reverse;
+    public float lastAttack;
 
     public Air(int round)
     {
@@ -28,6 +29,7 @@ public class Air extends Enemy
         frameCounter=0;
         type = 2;
         setValue(round);
+        lastAttack = TimeUtils.nanoTime();
     }
 
     public void step()
@@ -63,4 +65,10 @@ public class Air extends Enemy
             x = x - 200 * Gdx.graphics.getDeltaTime();
     }
 
+    public Fireball attack()
+    {
+        Fireball fb = new Fireball(right, x, y-80);
+
+        return fb;
+    }
 }

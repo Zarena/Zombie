@@ -146,7 +146,11 @@ public class gameOverScreen implements Screen
     }
 
     @Override
-    public void dispose() {
+    public void dispose()
+    {
+        splashScreen.dispose();
+        hand.dispose();
+        game.dispose();
     }
 
 

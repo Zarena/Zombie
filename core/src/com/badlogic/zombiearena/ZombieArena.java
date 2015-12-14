@@ -31,8 +31,6 @@ public class ZombieArena extends Game
 
 	public void dispose()
 	{
-		batch.dispose();
-		font.dispose();
 	}
 
 }

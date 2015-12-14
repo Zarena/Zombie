@@ -21,6 +21,10 @@ public class Enemy
     protected float lastUpdate;
     public int type;
     private int ptValue;
+    public float lastAttack;
+    public boolean grabbing;
+    public boolean counted;
+
 
 
 
@@ -33,6 +37,8 @@ public class Enemy
         frameCounter = 0;
         alive = true;
         lastUpdate = TimeUtils.nanoTime();
+        grabbing = false;
+        counted = false;
     }
 
 
@@ -57,6 +63,13 @@ public class Enemy
     public Sprite getAvatar()
     {
         return avatar;
+    }
+
+
+    public boolean grab()
+    {
+        System.out.println("You should not be here.");
+        return false;
     }
 
 
@@ -90,10 +103,11 @@ public class Enemy
         attacking = false;
     }
 
-    //Scaffold - #STUB - finish me later
-    public void attack()
+    public Fireball attack()
     {
-
+        Fireball fake = new Fireball(false, 0, 0);
+        System.out.println("Accidental Call"); //Should never print
+        return fake;
     }
 
 
@@ -124,6 +138,13 @@ public class Enemy
 
     public boolean playDead()
     {
+        //If end of death frame, return true;
+
+        if(TimeUtils.nanoTime() - lastUpdate > 500000000)
+        {
+            lastUpdate = TimeUtils.nanoTime();
+
+        }
 
 
         //If end of death frame, return true;

@@ -24,6 +24,8 @@ public class Enemy
     public float lastAttack;
     public boolean grabbing;
     public boolean counted;
+    public boolean bump;
+
 
 
 
@@ -39,6 +41,7 @@ public class Enemy
         lastUpdate = TimeUtils.nanoTime();
         grabbing = false;
         counted = false;
+        bump = false;
     }
 
 
@@ -151,6 +154,11 @@ public class Enemy
         if(1==1)
             return true;
         return false;
+    }
+
+    public void bump(float inx, float iny)
+    {
+
     }
 
 

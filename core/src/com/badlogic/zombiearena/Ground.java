@@ -10,6 +10,9 @@ import com.badlogic.gdx.utils.TimeUtils;
 public class Ground extends Enemy
 {
 
+    boolean peak;
+    float bumpX;
+    float bumpY;
     public Ground(int round)
     {
         super(round);
@@ -27,6 +30,8 @@ public class Ground extends Enemy
         right = false;
         type = 1;
         setValue(round + 1);
+        peak = false;
+        int maxY=0;
     }
 
     public void step()
@@ -45,10 +50,73 @@ public class Ground extends Enemy
 
         }
 
+
         if (right)
-            x = x + 150 * Gdx.graphics.getDeltaTime();
+        {
+            if(!bump)
+                x = x + 150 * Gdx.graphics.getDeltaTime();
+            else
+            {
+                if(!peak)
+                {
+                    y = y + 2;
+                    x = x - bumpX;
+
+                    if(y >= bumpY)
+                        peak = true;
+                }
+                else
+                {
+                    y = y - 2;
+                    x = x - bumpX;
+
+                    if(y <= 65)
+                    {
+                        y = 65;
+                        peak = false;
+                        bump = false;
+                    }
+                }
+            }
+
+        }
         else
-            x = x - 150 * Gdx.graphics.getDeltaTime();
+        {
+            if(!bump)
+                x = x - 150 * Gdx.graphics.getDeltaTime();
+            else
+            {
+                if(!peak)
+                {
+                    y = y + 150 * Gdx.graphics.getDeltaTime();
+                    x = x + 200 * Gdx.graphics.getDeltaTime();
+
+                    if(y >= bumpY)
+                        peak = true;
+                }
+                else
+                {
+                    y = y - 150 * Gdx.graphics.getDeltaTime();
+                    x = x + 200 * Gdx.graphics.getDeltaTime();
+
+                    if(y <= 65)
+                    {
+                        y = 65;
+                        peak = false;
+                        bump = false;
+                    }
+                }
+            }
+        }
+
+    }
+
+    public void bump(float inx, float iny)
+    {
+        bump = true;
+        bumpX = inx;
+        bumpY = iny;
+
     }
 
 }

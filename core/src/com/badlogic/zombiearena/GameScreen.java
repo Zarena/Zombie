@@ -650,7 +650,7 @@ public class GameScreen implements Screen
                         {
                             if(e.x <= playPos.x + 276 && e.x >= playPos.x)
                             {
-                                if(e.grabbing)
+                                if(e.counted)
                                     grabbed --;
 
                                 badOnScreen --;
@@ -666,7 +666,7 @@ public class GameScreen implements Screen
                         {
                             if(e.x + 141 >= playPos.x + 10 && e.x + 141 <=  playPos.x + 276)
                             {
-                                if(e.grabbing)
+                                if(e.counted)
                                     grabbed --;
                                 badOnScreen --;
                                 score += e.getValue();
@@ -730,6 +730,11 @@ public class GameScreen implements Screen
                                 if(enemy.isAlive());
                                 {
                                     enemy.takeDamage(random(playerStr, playerStr + (int)(playerStr/10)));
+
+                                   float x = (float)(random(3, 7));
+                                    float y = (float)(random(90, 100));
+                                    enemy.bump(x,y);
+
                                     thwack.play();
                                 }
                             }
@@ -741,6 +746,11 @@ public class GameScreen implements Screen
                                 if(enemy.isAlive());
                                 {
                                     enemy.takeDamage(random((int)(playerStr), playerStr + (int)(playerStr/10)));
+
+                                   float x = (float)(random(3, 7));
+                                    float y = (float)(random(90, 100));
+                                    enemy.bump(x,y);
+
                                     thwack.play();
                                 }
 
@@ -753,7 +763,7 @@ public class GameScreen implements Screen
 
 
 
-            if(slashCounter==2)
+            if(slashCounter==2 && !halfSwing)
                 hammerSwing1.play();
 
 
@@ -1658,7 +1668,8 @@ public class GameScreen implements Screen
             switch(enemy.type)
             {
                 case 1:
-                        enemy.facePlayer(playPos.getX() + 110);
+                        if(!enemy.bump)
+                            enemy.facePlayer(playPos.getX() + 110);
                     break;
                 case 2:
                     if (enemy.x > 1366 - 188)
@@ -1792,6 +1803,10 @@ public class GameScreen implements Screen
                             playerHealth -= random(1, 4) * 5;
                             vuln = false;
                             vulnTimer = TimeUtils.nanoTime();
+
+                           float x = (float)(random(3, 7));
+                            float y = (float)(random(90, 100));
+                            enemy.bump(x,y);
                         }
                     } else
                     {
@@ -1800,6 +1815,10 @@ public class GameScreen implements Screen
                             playerHealth -= random(1, 4) * 5;
                             vuln = false;
                             vulnTimer = TimeUtils.nanoTime();
+
+                           float x = (float)(random(3, 7));
+                            float y = (float)(random(90, 100));
+                            enemy.bump(x,y);
                         }
                     }
                 } else
@@ -1811,6 +1830,10 @@ public class GameScreen implements Screen
                             playerHealth -= random(1, 4) * 5;
                             vuln = false;
                             vulnTimer = TimeUtils.nanoTime();
+
+                           float x = (float)(random(3, 7));
+                            float y = (float)(random(90, 100));
+                            enemy.bump(x,y);
                         }
                     } else
                     {
@@ -1819,6 +1842,10 @@ public class GameScreen implements Screen
                             playerHealth -= random(1, 4) * 5;
                             vuln = false;
                             vulnTimer = TimeUtils.nanoTime();
+
+                           float x = (float)(random(3, 7));
+                            float y = (float)(random(90, 100));
+                            enemy.bump(x,y);
                         }
                     }
                 }
@@ -2083,4 +2110,15 @@ public class GameScreen implements Screen
     {
 
     }
+    
+    
+ /*   public void bumpValue()
+    {
+       float x = (float)(random(3, 7));
+        float y = (float)(random(90, 100));
+        enemy.bump(x,y);
+    }
+    */
+    
+    
 }

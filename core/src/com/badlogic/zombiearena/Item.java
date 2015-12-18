@@ -13,11 +13,11 @@ public class Item
     public float x,y;
     public boolean up;
 
-    public Item(int t, float inx)
+    public Item(int t, float inx, float iny)
     {
         type = t;
         x=inx;
-        y=80;
+        y=iny;
 
         switch(type)
         {

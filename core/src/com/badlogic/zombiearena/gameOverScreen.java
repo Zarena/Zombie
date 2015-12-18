@@ -20,8 +20,9 @@ public class gameOverScreen implements Screen
     private Color defCol, selCol;
     private String yourScoreIs;
     final ZombieArena game;
+    private String rounds;
 
-    public gameOverScreen(final ZombieArena gam, int scoreIn)
+    public gameOverScreen(final ZombieArena gam, int scoreIn, int roundIn)
     {
         // The following sets the screen size and loads the pictures onto our start screen.
         game = gam;
@@ -33,6 +34,7 @@ public class gameOverScreen implements Screen
         defCol = Color.FOREST;
         selCol = Color.WHITE;
         selection=0;
+        rounds = "You made it to round " + roundIn;
     }
 
     @Override
@@ -60,28 +62,29 @@ public class gameOverScreen implements Screen
 
 
         game.font.draw(game.batch, yourScoreIs, 550, 350);
+        game.font.draw(game.batch, rounds, 550, 325);
 
 
         if(selection == 0)
         {
-            game.batch.draw(hand, 480, 265);
+            game.batch.draw(hand, 480, 240);
             game.font.setColor(selCol);
         }
         else
             game.font.setColor(defCol);
-        game.font.draw(game.batch, "Main Menu", 600, 300);
+        game.font.draw(game.batch, "Main Menu", 600, 275);
 
 
 
         if(selection == 1)
         {
 
-            game.batch.draw(hand, 480, 240);
+            game.batch.draw(hand, 480, 215);
             game.font.setColor(selCol);
         }
         else
             game.font.setColor(defCol);
-        game.font.draw(game.batch, "Quit", 625, 275);
+        game.font.draw(game.batch, "Quit", 625, 250);
 
 
         game.batch.end();

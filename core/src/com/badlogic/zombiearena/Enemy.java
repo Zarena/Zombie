@@ -25,6 +25,7 @@ public class Enemy
     public boolean grabbing;
     public boolean counted;
     public boolean bump;
+    int kb; //Number of times knocked back
 
 
 
@@ -42,6 +43,7 @@ public class Enemy
         grabbing = false;
         counted = false;
         bump = false;
+        kb=0;
     }
 
 
@@ -156,7 +158,7 @@ public class Enemy
         return false;
     }
 
-    public void bump(float inx, float iny)
+    public void bump(int inx, float iny)
     {
 
     }

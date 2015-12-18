@@ -11,24 +11,19 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.TimeUtils;
 
-public class InfoScreen implements Screen
+public class InfoScreen2 implements Screen
 {
     final ZombieArena game;
     OrthographicCamera camera;
-    private Texture bg, shield;
-    float swap;
-    boolean swapped;
+    private Texture bg;
 
-    public InfoScreen(final ZombieArena gam)
+    public InfoScreen2(final ZombieArena gam)
     {
         // The following sets the screen size and loads the pictures onto our start screen.
         game = gam;
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1366, 768);
-        bg = new Texture(Gdx.files.internal("infoBG.png"));
-        shield = new Texture(Gdx.files.internal("buff_hp.png"));
-        swap = TimeUtils.nanoTime();
-        swapped = false;
+        bg = new Texture(Gdx.files.internal("info2BG.png"));
     }
 
     @Override
@@ -46,26 +41,6 @@ public class InfoScreen implements Screen
         game.batch.begin();
 
         game.batch.draw(bg, 0, 0);
-        game.batch.draw(shield, 1100, 420);
-
-        if(TimeUtils.nanoTime() - swap > 500000000)
-        {
-            if(swapped)
-            {
-                swapped = false;
-                game.font.setColor(Color.WHITE);
-                swap = TimeUtils.nanoTime();
-            }
-            else
-            {
-                swapped = true;
-                game.font.setColor(Color.FOREST);
-                swap = TimeUtils.nanoTime();
-            }
-        }
-
-        game.font.draw(game.batch, "Press Space To Return To Main Menu", 550, 100);
-        game.font.draw(game.batch, "Press Right Arrow to go to the next page", 540, 80);
 
         game.batch.end();
 
@@ -77,9 +52,9 @@ public class InfoScreen implements Screen
             dispose();
         }
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
+        if(Gdx.input.isKeyJustPressed((Input.Keys.LEFT)))
         {
-            game.setScreen(new InfoScreen2(game));
+            game.setScreen(new InfoScreen(game));
             dispose();
         }
     }
@@ -110,7 +85,6 @@ public class InfoScreen implements Screen
     {
         game.dispose();
         bg.dispose();
-        shield.dispose();
     }
 
 

@@ -50,7 +50,7 @@ public class Under extends Enemy
             maxFrames = 4;
         }
 
-        if(TimeUtils.nanoTime() - lastUpdate > 500000000)
+        if(TimeUtils.nanoTime() - lastUpdate > 400000000)
         {
             lastUpdate = TimeUtils.nanoTime();
             frameCounter ++;

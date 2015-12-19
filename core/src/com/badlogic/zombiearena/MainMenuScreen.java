@@ -5,6 +5,7 @@ package com.badlogic.zombiearena;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -19,6 +20,7 @@ public class MainMenuScreen implements Screen
     OrthographicCamera camera;
     private Texture mainBG;
     private Color defCol, selCol;
+    private Music music;
 
     public MainMenuScreen(final ZombieArena gam)
     {
@@ -31,7 +33,7 @@ public class MainMenuScreen implements Screen
         selCol = Color.WHITE;
         selection=0;
         hand = new Texture(Gdx.files.internal("zombie_hand_use.png"));
-
+        music = Gdx.audio.newMusic(Gdx.files.internal("music_menu.mp3"));
     }
 
     @Override
@@ -136,7 +138,10 @@ public class MainMenuScreen implements Screen
     }
 
     @Override
-    public void show() {
+    public void show()
+    {
+        music.setLooping(true);
+        music.play();
     }
 
     @Override
@@ -156,6 +161,7 @@ public class MainMenuScreen implements Screen
     {
         hand.dispose();
         game.dispose();
+        music.dispose();
         mainBG.dispose();
     }
 

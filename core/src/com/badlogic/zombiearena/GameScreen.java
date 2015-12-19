@@ -49,7 +49,7 @@ public class GameScreen implements Screen
 
 
     //More Sounds
-    private Sound death, fball, thwack, victory, broke, growl;
+    private Sound death, fball, victory, broke, growl;
     private Sound[] injury;
     private Sound[] pickup;
     private Music bgMusic;
@@ -275,9 +275,8 @@ public class GameScreen implements Screen
         broke = Gdx.audio.newSound(Gdx.files.internal("s_broke.wav"));
         death = Gdx.audio.newSound(Gdx.files.internal("s_death.wav"));
         fball = Gdx.audio.newSound(Gdx.files.internal("s_fball.wav"));
-        thwack = Gdx.audio.newSound(Gdx.files.internal("s_thwack.wav"));
         victory = Gdx.audio.newSound(Gdx.files.internal("s_victory.wav"));
-        bgMusic = Gdx.audio.newMusic(Gdx.files.internal("s_victory.wav"));
+        bgMusic = Gdx.audio.newMusic(Gdx.files.internal("bgmusic.mp3"));
 
 
         injury = new Sound[2];
@@ -620,7 +619,10 @@ public class GameScreen implements Screen
 
 
             if(throwCounter==6)
-                hammerThrow.play();
+            {
+                long id = hammerThrow.play();
+                hammerThrow.setVolume(id, (float).15);
+            }
 
 
 
@@ -654,7 +656,10 @@ public class GameScreen implements Screen
 
 
             if(slamCounter == 4)
-                hammerSlam.play();
+            {
+                long id =  hammerSlam.play();
+                hammerSlam.setVolume(id, (float).01);
+            }
 
             if(slamCounter >= 3)
             {
@@ -701,7 +706,10 @@ public class GameScreen implements Screen
 
 
             if(slashCounter==2 && !halfSwing)
-                hammerSwing1.play();
+            {
+                long id = hammerSwing1.play();
+                hammerSwing1.setVolume(id, (float).01);
+            }
 
 
 
@@ -752,8 +760,6 @@ public class GameScreen implements Screen
                             int x = random(140, 160);
                             float y = (float)(random(90, 100));
                             e.bump(x, y);
-
-                            thwack.play();
                         }
                     }
                 } else
@@ -769,8 +775,6 @@ public class GameScreen implements Screen
                             int x = random(140, 160);
                             float y = (float)(random(90, 100));
                             e.bump(x,y);
-
-                            thwack.play();
                         }
 
                     }
@@ -1335,8 +1339,8 @@ public class GameScreen implements Screen
                         playPos.setX(playPos.getX() - 1000 * Gdx.graphics.getDeltaTime());
                 }
 
-                if(!dodging && vuln)
-                    getHit();
+
+                getHit();
                 if(!vuln)
                     checkVuln();
 
@@ -1362,7 +1366,8 @@ public class GameScreen implements Screen
                 {
                     isStanding = false;
                     dodgeCD = TimeUtils.nanoTime();
-                    dodge.play();
+                    long id = dodge.play();
+                    dodge.setVolume(id, (float).05);
                     dodging = true;
                     moveOK = false;
                     lastUpdate = TimeUtils.nanoTime();
@@ -1709,7 +1714,8 @@ public class GameScreen implements Screen
                     {
                         if (enemy.x + 100 >= playPos.x)
                         {
-                            damagePlayer(1);
+                            if(!dodging && vuln)
+                             damagePlayer(1);
 
                            int x = random(140, 160); 
                             float y = (float)(random(90, 100));
@@ -1719,7 +1725,8 @@ public class GameScreen implements Screen
                     {
                         if (playPos.x + 164 >= enemy.x)
                         {
-                           damagePlayer(1);
+                            if(!dodging && vuln)
+                                 damagePlayer(1);
 
                            int x = random(140, 160); 
                             float y = (float)(random(90, 100));
@@ -1732,6 +1739,7 @@ public class GameScreen implements Screen
                     {
                         if (enemy.x + 100 >= playPos.x + 112)
                         {
+                            if(!dodging && vuln)
                             damagePlayer(1);
 
                            int x = random(140, 160); 
@@ -1742,6 +1750,7 @@ public class GameScreen implements Screen
                     {
                         if (playPos.x + 280 >= enemy.x)
                         {
+                            if(!dodging && vuln)
                             damagePlayer(1);
 
                            int x = random(140, 160); 
@@ -1765,7 +1774,7 @@ public class GameScreen implements Screen
             if(fb.x > 1366)
                 rem=true;
 
-            if(isStanding)
+            if(isStanding  && !dodging && vuln)
             {
                 if((fb.y <= playPos.y + 126) && (fb.x >= playPos.x+10) && (fb.x <= playPos.x + 150))
                 {
@@ -1773,7 +1782,7 @@ public class GameScreen implements Screen
                     damagePlayer(2);
                 }
             }
-            else
+            else if(!isStanding && !dodging && vuln)
             {
                 if((fb.y <= playPos.y + 177) && (fb.y >= 0) && (fb.x >= playPos.x+100) && (fb.x <= playPos.x + 167))
                 {
@@ -1820,15 +1829,22 @@ public class GameScreen implements Screen
                 break;
         }
 
-        if(shield > 0) {
-            broke.play();
+        if(shield > 0)
+        {
+            long id = broke.play();
+            broke.setVolume(id, 1);
             shield --;
         }
         else
         {
             playerHealth -= damage;
             if(playerHealth > 0)
-                injury[random(0,1)].play();
+            {
+                int x = random(0,1);
+                long id = injury[x].play();
+                injury[x].setVolume(id, (float)1);
+
+            }
         }
 
     }
@@ -1880,7 +1896,10 @@ public class GameScreen implements Screen
                 g.y = playPos.y + 25;
                 enemies.add(g);
                 lastEnemy = TimeUtils.nanoTime();
-                enemyHiss.play();
+                {
+                    long id = enemyHiss.play();
+                    enemyHiss.setVolume(id, (float).05);
+                }
                 break;
 
             case 4:
@@ -1890,7 +1909,10 @@ public class GameScreen implements Screen
                 a.y = playPos.y + random(350, screenY - 40 - 136);
                 enemies.add(a);
                 lastEnemy = TimeUtils.nanoTime();
-                growl.play();
+                {
+                    long id = growl.play();
+                    enemyHiss.setVolume(id, (float).05);
+                }
                 break;
 
 
@@ -1955,7 +1977,7 @@ public class GameScreen implements Screen
     private void spawnItem(float inx, float iny)
     {
 
-        if(random(1,10) >= 7)
+        if(random(1,10) >= 8)
         {
             Item i = new Item(random(1,5), inx, iny);
             items.add(i);
@@ -2058,6 +2080,7 @@ public class GameScreen implements Screen
         //start the playback of the background music when screen is shown
         bgMusic.setLooping(true);
         bgMusic.play();
+        bgMusic.setVolume((float)0.05);
     }
 
 
@@ -2092,6 +2115,7 @@ public class GameScreen implements Screen
             eHP[i].dispose();
             pHP[i].dispose();
         }
+        bgMusic.dispose();
     }
 
 

@@ -141,6 +141,7 @@ public class Enemy
 
 
 
+    //Used for displaying death animations if there is time
     public boolean playDead()
     {
         //If end of death frame, return true;

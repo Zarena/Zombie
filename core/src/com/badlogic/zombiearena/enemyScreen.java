@@ -11,19 +11,19 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.TimeUtils;
 
-public class InfoScreen2 implements Screen
+public class enemyScreen implements Screen
 {
     final ZombieArena game;
     OrthographicCamera camera;
     private Texture bg;
 
-    public InfoScreen2(final ZombieArena gam)
+    public enemyScreen(final ZombieArena gam)
     {
         // The following sets the screen size and loads the pictures onto our start screen.
         game = gam;
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1366, 768);
-        bg = new Texture(Gdx.files.internal("info2BG.png"));
+        bg = new Texture(Gdx.files.internal("enemybg.png"));
     }
 
     @Override
@@ -53,14 +53,13 @@ public class InfoScreen2 implements Screen
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT))
         {
-            game.setScreen(new InfoScreen(game));
+            game.setScreen(new InfoScreen2(game));
             dispose();
         }
 
         if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
         {
-            game.setScreen(new enemyScreen(game));
-            dispose();
+            game.setScreen(new FAQScreen(game));
         }
     }
 

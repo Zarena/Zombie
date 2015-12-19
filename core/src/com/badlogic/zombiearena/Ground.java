@@ -38,77 +38,79 @@ public class Ground extends Enemy
     {
         // This section is to for the speed at which the walk animation for zombies plays and moves.
         // This also sets the walk animation for both directions using an if statement.
-        if(TimeUtils.nanoTime() - lastUpdate > 100000000 )
+        if(alive)
         {
-            lastUpdate = TimeUtils.nanoTime();
-            frameCounter++;
-
-            if (frameCounter == maxFrames)
-                frameCounter = 0;
-
-            avatar.set(frame[frameCounter]);
-
-        }
-
-
-        if (right)
-        {
-            if(!bump)
-                x = x + 150 * Gdx.graphics.getDeltaTime();
-            else
+            if(TimeUtils.nanoTime() - lastUpdate > 100000000 )
             {
-                if(!peak)
-                {
-                    y = y + 150 * Gdx.graphics.getDeltaTime();
-                    x = x - bumpX * Gdx.graphics.getDeltaTime();
+                lastUpdate = TimeUtils.nanoTime();
+                frameCounter++;
 
-                    if(y >= bumpY)
-                        peak = true;
-                }
+                if (frameCounter == maxFrames)
+                    frameCounter = 0;
+
+                avatar.set(frame[frameCounter]);
+
+            }
+
+
+            if (right)
+            {
+                if(!bump)
+                    x = x + 150 * Gdx.graphics.getDeltaTime();
                 else
                 {
-                    y = y - 150 * Gdx.graphics.getDeltaTime();
-                    x = x - bumpX * Gdx.graphics.getDeltaTime();
-
-                    if(y <= 65)
+                    if(!peak)
                     {
-                        y = 65;
-                        peak = false;
-                        bump = false;
+                        y = y + 150 * Gdx.graphics.getDeltaTime();
+                        x = x - bumpX * Gdx.graphics.getDeltaTime();
+
+                        if(y >= bumpY)
+                            peak = true;
+                    }
+                    else
+                    {
+                        y = y - 150 * Gdx.graphics.getDeltaTime();
+                        x = x - bumpX * Gdx.graphics.getDeltaTime();
+
+                        if(y <= 65)
+                        {
+                            y = 65;
+                            peak = false;
+                            bump = false;
+                        }
+                    }
+                }
+
+            }
+            else
+            {
+                if(!bump)
+                    x = x - 150 * Gdx.graphics.getDeltaTime();
+                else
+                {
+                    if(!peak)
+                    {
+                        y = y + 150 * Gdx.graphics.getDeltaTime();
+                        x = x + bumpX * Gdx.graphics.getDeltaTime();
+
+                        if(y >= bumpY)
+                            peak = true;
+                    }
+                    else
+                    {
+                        y = y - 150 * Gdx.graphics.getDeltaTime();
+                        x = x + bumpX * Gdx.graphics.getDeltaTime();
+
+                        if(y <= 65)
+                        {
+                            y = 65;
+                            peak = false;
+                            bump = false;
+                        }
                     }
                 }
             }
-
         }
-        else
-        {
-            if(!bump)
-                x = x - 150 * Gdx.graphics.getDeltaTime();
-            else
-            {
-                if(!peak)
-                {
-                    y = y + 150 * Gdx.graphics.getDeltaTime();
-                    x = x + bumpX * Gdx.graphics.getDeltaTime();
-
-                    if(y >= bumpY)
-                        peak = true;
-                }
-                else
-                {
-                    y = y - 150 * Gdx.graphics.getDeltaTime();
-                    x = x + bumpX * Gdx.graphics.getDeltaTime();
-
-                    if(y <= 65)
-                    {
-                        y = 65;
-                        peak = false;
-                        bump = false;
-                    }
-                }
-            }
-        }
-
     }
 
     public void bump(int inx, float iny)

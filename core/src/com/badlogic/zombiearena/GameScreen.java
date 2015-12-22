@@ -270,7 +270,7 @@ public class GameScreen implements Screen
         paused = new Sprite(pausedT);
 
 
-
+        //Initialize sounds
         growl = Gdx.audio.newSound(Gdx.files.internal("EnemyGrowl.mp3"));
         broke = Gdx.audio.newSound(Gdx.files.internal("s_broke.wav"));
         death = Gdx.audio.newSound(Gdx.files.internal("s_death.wav"));

@@ -18,7 +18,8 @@ public class Item
         type = t;
         x=inx;
         y=iny;
-
+        // These when triggered will draw their respective power up images that drop
+        // from enemies.
         switch(type)
         {
             case 1:

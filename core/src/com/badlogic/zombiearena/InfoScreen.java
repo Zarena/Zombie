@@ -70,7 +70,7 @@ public class InfoScreen implements Screen
         game.batch.end();
 
 
-
+        //The arrow keys here will swap between the info screens that are in the game.
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE))
         {
             game.setScreen(new MainMenuScreen(game));

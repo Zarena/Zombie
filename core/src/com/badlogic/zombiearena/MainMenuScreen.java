@@ -25,6 +25,7 @@ public class MainMenuScreen implements Screen
     public MainMenuScreen(final ZombieArena gam)
     {
         // The following sets the screen size and loads the pictures onto our start screen.
+        // Also loads in the menu music.
         game = gam;
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1366, 768);
@@ -89,7 +90,7 @@ public class MainMenuScreen implements Screen
 
         game.batch.end();
 
-
+        // The following keys are for navigating the menu screen.
         if(Gdx.input.isKeyJustPressed(Input.Keys.DOWN))
         {
             selection++;
@@ -108,7 +109,8 @@ public class MainMenuScreen implements Screen
         }
 
 
-
+        //The enter key is checking to see what item in the menu is selected and will
+        //show the appropriate screen or exit the game accordingly.
         if(Gdx.input.isKeyJustPressed(Input.Keys.ENTER))
         {
             switch(selection)
@@ -140,6 +142,7 @@ public class MainMenuScreen implements Screen
     @Override
     public void show()
     {
+        //Plays and loops music for the game menu.
         music.setLooping(true);
         music.play();
     }

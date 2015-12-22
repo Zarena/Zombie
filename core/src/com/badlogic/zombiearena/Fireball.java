@@ -22,6 +22,9 @@ public class Fireball
 
     public Fireball(boolean flip, float inX, float inY)
     {
+        //This draws two fireball images in a loop as it travels
+        //to give it the illusion of motion.
+        //It also checks to draw it in the proper direction.
         skin1 = new Texture(Gdx.files.internal("fireball1.png"));
         skin2 = new Texture(Gdx.files.internal("fireball2.png"));
         frame = new Sprite[2];

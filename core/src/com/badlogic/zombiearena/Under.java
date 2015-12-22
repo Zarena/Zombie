@@ -11,7 +11,9 @@ import com.badlogic.gdx.utils.TimeUtils;
 public class Under extends Enemy
 {
     Sprite attack[];
-
+    // This enemy is our underground enemy that will grab the player in the game.
+    // We will draw the sprites for the enemy and set how it moves
+    // and can grab the player.
     public Under(int round)
     {
         super(round);

@@ -740,7 +740,7 @@ public class GameScreen implements Screen
 
 
 
-
+//Method is called by slash() to check for, and deal, damage and knockback to zombies
     private void slashDamage()
     {
        for(Enemy e:enemies)
@@ -790,7 +790,7 @@ public class GameScreen implements Screen
 
 
 
-
+//This method is called in render() to see if the hammer sprite has hit any dragons
     public void hammerHit()
     {
         for(Enemy e : enemies)
@@ -828,13 +828,14 @@ public class GameScreen implements Screen
     public void render(float delta)
     {
 
+        //Quit  Game Via Escape
         if(Gdx.input.isKeyJustPressed(Keys.ESCAPE))
                 System.exit(0);
 
 
 
 
-
+        //Pause Functionality
         switch (state)
         {
             case PAUSE:
@@ -865,6 +866,8 @@ public class GameScreen implements Screen
                 batch.setProjectionMatrix(camera.combined);
 
 
+
+                //Track the last time hte player was hit (winning if its been at least 2 seconds)
                 if(TimeUtils.nanoTime() - lastWin > 45000000)
                 {
                     lastWin = TimeUtils.nanoTime();
@@ -902,23 +905,48 @@ public class GameScreen implements Screen
 
                 batch.draw(background, 0, 0);
 
+
+
+                ////////////// Draw tutorial text for early rounds
                 if(round == 1)
                 {
                     font.setColor(Color.WHITE);
-                    font.draw(batch, tut1, 300, 15);
+                    font.draw(batch, tut1, 300, 20);
                 }
+
+
                 if(round == 2)
                 {
                     font.setColor(Color.WHITE);
-                    font.draw(batch, tut2, 300, 15);
+                    font.draw(batch, tut2, 300, 20);
                 }
+
+
                 if(round == 3)
                 {
                     font.setColor(Color.WHITE);
-                    font.draw(batch, "Don't forget to spend points on upgrades between rounds! Do so by clicking the colored buttons labled \"Damage\", \"Atk Speed\" and \"Agility\"",300, 15);
+                    font.draw(batch, "Finally, you can use the SPACE key to dodge. Dodging will move you forward and make you immune to damage. You must wait a short while between dodges, so use it wisely!",150, 20);
                 }
 
 
+                if(round == 4)
+                {
+                    font.setColor(Color.WHITE);
+                    font.draw(batch, "Don't forget to look for free upgrades dropped by your enemies. Hammers, Daggers and Boots increase Damage, Attack Speed, and Movement Speed Respectively. Pork chops heal you and shields block 1 attack!",5, 20);
+                }
+
+
+                if(round == 5)
+                {
+                    font.setColor(Color.WHITE);
+                    font.draw(batch, "Don't forget to spend points on upgrades between rounds! Do so by clicking the colored buttons labeled \"Damage\", \"Atk Speed\" and \"Agility\"",300, 20);
+                }
+                //////////////////////////////////////////////////
+                //////////////////////////////////////////////////
+
+
+
+                //Draw Items & Check for Pickups
                 for(Item i : items)
                 {
                     batch.draw(i.image, i.x, i.y);
@@ -975,6 +1003,7 @@ public class GameScreen implements Screen
                     batch.draw(avatar, playPos.getX(), playPos.getY());
 
 
+                //Draw shield
                 if(shield >0 && isStanding)
                 {
                     if(facingRight)
@@ -1004,7 +1033,7 @@ public class GameScreen implements Screen
 
 
 
-                //Draw Score
+                //Draw Score & Stats
                 font.setColor(Color.WHITE);
                 font.draw(batch, yourScoreIs, screenX - (float)(yourScoreIs.length() * 8.75), screenY - 20);
 
@@ -1032,14 +1061,6 @@ public class GameScreen implements Screen
 
 
 
-
-                font.setColor(Color.FOREST);
-                font.draw(batch, currentRound, 5, screenY-20);
-
-
-
-
-
                 //Draw and update hammer if hammer was fired
                 if (flying)
                 {
@@ -1057,13 +1078,6 @@ public class GameScreen implements Screen
 
                     //check for hammer collisions
                     hammerHit();
-                }
-
-
-
-                for(Enemy enemy:  enemies)
-                {
-                    batch.draw(enemy.avatar, enemy.x, enemy.y);
                 }
 
 
@@ -1309,7 +1323,7 @@ public class GameScreen implements Screen
 
 
                     font.setColor(Color.RED);
-                    font.draw(batch, roundFinished, 600, 30);
+                    font.draw(batch, roundFinished, 600, 40);
                 }
 
 
@@ -1317,12 +1331,18 @@ public class GameScreen implements Screen
 
                     batch.end();
 
+
+
+
+                //Track interval for spawning enemies. Enemies spawn closer together as the rounds go on.
                 if(TimeUtils.nanoTime() - lastEnemy > 2000000000 -  (round * (1000000000/15)) )
                     if(spawnOK)
                         spawnEnemy();
                 runEnemies();
 
 
+
+                //Enable and disable dodging
                 if (dodging && TimeUtils.nanoTime() - lastUpdate > 500000000)
                 {
                     avatar.set(standing);
@@ -1334,17 +1354,25 @@ public class GameScreen implements Screen
                 if (dodging)
                 {
                     if (facingRight)
-                        playPos.setX(playPos.getX() + 1000 * Gdx.graphics.getDeltaTime());
+                        playPos.setX(playPos.getX() + 1100 * Gdx.graphics.getDeltaTime());
                     else
-                        playPos.setX(playPos.getX() - 1000 * Gdx.graphics.getDeltaTime());
+                        playPos.setX(playPos.getX() - 1100 * Gdx.graphics.getDeltaTime());
                 }
+                ///////////////////////////////////////////////////////////////////////////////
 
 
+
+
+                //Check for damage dealt to the player. Check status of vulnerability.
                 getHit();
                 if(!vuln)
                     checkVuln();
 
 
+
+
+
+                // Check for player death
                 if (playerHealth <= 0)
                 {
                     death.play();
@@ -1555,6 +1583,7 @@ public class GameScreen implements Screen
 
 
 
+                //Prevent player from walking off screen
                 if (playPos.getX() < 0) playPos.setX(0);
                 if (playPos.getX() > screenX - 220) playPos.setX(screenX - 220);
 
@@ -1564,6 +1593,9 @@ public class GameScreen implements Screen
 
         }
     }
+
+
+
 
 
     //Handles Enemy Actions (AI)
@@ -1693,6 +1725,8 @@ public class GameScreen implements Screen
     }
 
 
+
+    //Makes player vulnerable again after 1 second of invulnerability
     private void checkVuln()
     {
         if(TimeUtils.nanoTime() - vulnTimer > 1000000000)
@@ -1702,6 +1736,7 @@ public class GameScreen implements Screen
 
 
 
+    //Checks for player being damaged
     public void getHit()
     {
         for (Enemy enemy : enemies)
@@ -1856,6 +1891,7 @@ public class GameScreen implements Screen
 
 
     //Project 3
+    //Spawns enemies of a randomly determined type
     public void spawnEnemy()
     {
         int temp = random(1,6);
@@ -1933,6 +1969,8 @@ public class GameScreen implements Screen
 
 
 
+    //Rounds to the nearest integer divisible by 5. This is used for health bars as they are displayed in percentages
+    // of 5
     public int round5(int current, int max)
     {
         if(current <= 0)
@@ -1992,6 +2030,7 @@ public class GameScreen implements Screen
 
 
     //RoundChecker
+    //Checks to see if the round is over and sets variables for the next round
     public void roundCheck()
     {
         if(badOnScreen == 0 && spawned == maxEnemies && roundInProg)
@@ -2008,6 +2047,7 @@ public class GameScreen implements Screen
 
 
     //To be Used later
+    //Used to randomly generate a number between min and max inclusively
     public static int random(int min, int max)
     {
         int range = Math.abs(max - min) + 1;
@@ -2018,6 +2058,7 @@ public class GameScreen implements Screen
 
 
 
+    //Deals damage to skeletons and knocks back zombies within range. Called by slam()
     private void slamDamage()
     {
         for(Enemy e: enemies)
@@ -2141,15 +2182,4 @@ public class GameScreen implements Screen
     {
 
     }
-    
-    
- /*   public void bumpValue()
-    {
-       int x = random(140, 160); 
-        float y = (float)(random(90, 100));
-        enemy.bump(x,y);
-    }
-    */
-    
-    
 }
